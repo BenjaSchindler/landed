@@ -1,0 +1,7 @@
+{
+ "name": "reply",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": "Thanks for reporting this — losing what you wrote is the worst. Good news: this was fixed in version 1.1.0, which now saves your answers the moment you switch away. You're on 1.0.0, so updating the app from the store resolves it. — The Ritmo team"
+}

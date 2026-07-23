@@ -1,0 +1,29 @@
+{
+ "name": "intake",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "kind": "bug",
+  "summary": "Typed exercise answers are lost when switching briefly to another app",
+  "symptoms": [
+   "in-progress exercise answers are lost when the app goes to background"
+  ],
+  "app_version": "1.0.0",
+  "platform": "android",
+  "language": "en",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "lose everything I typed"
+   ],
+   "dev_terms": [
+    "persist answers",
+    "background",
+    "exercise runner",
+    "restore state"
+   ]
+  }
+ }
+}

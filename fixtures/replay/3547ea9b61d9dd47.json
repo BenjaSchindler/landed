@@ -1,0 +1,32 @@
+{
+ "name": "intake",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "kind": "bug",
+  "summary": "A 40-day streak reset to zero after completing the habit late at night",
+  "symptoms": [
+   "streak resets to zero when a habit is completed late at night"
+  ],
+  "app_version": "1.1.0",
+  "platform": "unknown",
+  "language": "es",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "perdí mi racha",
+    "completé en la noche"
+   ],
+   "dev_terms": [
+    "streak",
+    "reset",
+    "midnight",
+    "timezone",
+    "day boundary",
+    "UTC"
+   ]
+  }
+ }
+}

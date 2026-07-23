@@ -1,0 +1,7 @@
+{
+ "name": "reply",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": "Thanks for telling us before turning notifications off! This exact bug — the reminder being scheduled twice — was fixed in version 1.1.0. Could you check which version you're on (Settings > About)? If it's older, updating from the store should stop the duplicates right away. — The Ritmo team"
+}

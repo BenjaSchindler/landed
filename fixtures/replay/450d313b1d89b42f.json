@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "match_sha": null,
+  "confidence": 0.15,
+  "reasoning": "The only streak-related fix changes timezone day-counting; nothing addresses the counter overlapping the header.",
+  "symptom_addressed": null
+ }
+}

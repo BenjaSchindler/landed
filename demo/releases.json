@@ -1,0 +1,10 @@
+{
+  "product": "Ritmo",
+  "note": "Release truth lives outside the repo on purpose: a git tag says code was cut, not that users have it. In production this would come from the store/deploy API.",
+  "releases": [
+    { "version": "1.0.0", "status": "released", "released_at": "2026-03-02" },
+    { "version": "1.0.1", "status": "released", "released_at": "2026-03-20" },
+    { "version": "1.1.0", "status": "released", "released_at": "2026-05-14" },
+    { "version": "1.2.0", "status": "in_review", "store_eta": "2026-07-28" }
+  ]
+}

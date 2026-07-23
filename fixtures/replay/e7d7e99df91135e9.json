@@ -1,0 +1,31 @@
+{
+ "name": "intake",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "kind": "bug",
+  "summary": "Streak counter overlaps the header text on a small screen",
+  "symptoms": [
+   "streak counter visually overlaps the header text on iPhone SE"
+  ],
+  "app_version": "1.1.0",
+  "platform": "ios",
+  "language": "en",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "streak counter overlaps header"
+   ],
+   "dev_terms": [
+    "streak",
+    "layout",
+    "overlap",
+    "header",
+    "small screen",
+    "font"
+   ]
+  }
+ }
+}

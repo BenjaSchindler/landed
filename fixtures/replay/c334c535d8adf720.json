@@ -1,0 +1,30 @@
+{
+ "name": "intake",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "kind": "bug",
+  "summary": "Exercise answers are erased after switching apps; version unknown",
+  "symptoms": [
+   "in-progress exercise answers are lost when the app goes to background"
+  ],
+  "app_version": null,
+  "platform": "unknown",
+  "language": "es",
+  "specific_enough": true,
+  "missing_info": [
+   "¿Qué versión de la app usas? La ves en Ajustes > Acerca de."
+  ],
+  "search_terms": {
+   "user_terms": [
+    "se borran las respuestas"
+   ],
+   "dev_terms": [
+    "persist answers",
+    "background",
+    "exercise runner"
+   ]
+  }
+ }
+}

@@ -1,0 +1,25 @@
+{
+ "name": "intake",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "kind": "question",
+  "summary": "How to export or back up personal data",
+  "symptoms": [],
+  "app_version": null,
+  "platform": "unknown",
+  "language": "en",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "export data backup"
+   ],
+   "dev_terms": [
+    "export",
+    "backup"
+   ]
+  }
+ }
+}

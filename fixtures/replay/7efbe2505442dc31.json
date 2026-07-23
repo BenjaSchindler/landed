@@ -1,0 +1,30 @@
+{
+ "name": "intake",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "kind": "bug",
+  "summary": "Duplicate daily reminder notifications every morning",
+  "symptoms": [
+   "the same daily reminder notification arrives twice, a minute apart"
+  ],
+  "app_version": "1.0.1",
+  "platform": "android",
+  "language": "es",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "dos notificaciones iguales"
+   ],
+   "dev_terms": [
+    "notification",
+    "duplicate",
+    "reminder",
+    "cancel",
+    "schedule"
+   ]
+  }
+ }
+}

@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Landed — did that fix reach your user?</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --ink: #1b2733; --muted: #66788a;
+    --line: #e3e8ee; --accent: #2557d6;
+    --green: #1e8e5a; --green-bg: #e7f6ee;
+    --blue: #1d6fb8; --blue-bg: #e8f2fb;
+    --red: #c23934; --red-bg: #fdeceb;
+    --orange: #b95d10; --orange-bg: #fdf1e3;
+    --amber: #9a7b0a; --amber-bg: #fbf4d9;
+    --gray: #5a6b7b; --gray-bg: #eef1f4;
+    --purple: #6b4fbb; --purple-bg: #f0ecfa;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+         background: var(--bg); color: var(--ink); }
+  header { display: flex; align-items: baseline; gap: 14px; padding: 14px 22px;
+           background: var(--panel); border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 19px; margin: 0; letter-spacing: -0.2px; }
+  header .sub { color: var(--muted); font-size: 13px; }
+  #mode { margin-left: auto; font-size: 12px; color: var(--muted); background: var(--gray-bg);
+          padding: 3px 10px; border-radius: 999px; }
+  #mode.live { color: var(--green); background: var(--green-bg); }
+
+  main { display: grid; grid-template-columns: 360px 1fr; gap: 18px; padding: 18px 22px;
+         max-width: 1280px; margin: 0 auto; align-items: start; }
+
+  .list { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .composer { padding: 12px; border-bottom: 1px solid var(--line); }
+  .composer textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+                       font: inherit; resize: vertical; min-height: 40px; }
+  .composer button { margin-top: 6px; }
+  .item { padding: 12px 14px; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .item:hover { background: #fafbfc; }
+  .item.selected { background: #f0f4ff; box-shadow: inset 3px 0 0 var(--accent); }
+  .item .top { display: flex; justify-content: space-between; gap: 8px; font-size: 12px;
+               color: var(--muted); margin-bottom: 3px; }
+  .item .snippet { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+                   overflow: hidden; font-size: 14px; }
+
+  .chip { display: inline-block; font-size: 12px; font-weight: 600; border-radius: 999px;
+          padding: 2px 10px; white-space: nowrap; }
+  .chip.big { font-size: 14px; padding: 5px 14px; }
+  .c-already_fixed { color: var(--green); background: var(--green-bg); }
+  .c-fix_coming    { color: var(--blue); background: var(--blue-bg); }
+  .c-regression    { color: var(--red); background: var(--red-bg); }
+  .c-not_fixed     { color: var(--orange); background: var(--orange-bg); }
+  .c-uncertain     { color: var(--amber); background: var(--amber-bg); }
+  .c-needs_info    { color: var(--gray); background: var(--gray-bg); }
+  .c-not_a_bug     { color: var(--purple); background: var(--purple-bg); }
+  .c-failed        { color: var(--gray); background: var(--gray-bg); }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+          padding: 16px 18px; margin-bottom: 14px; }
+  .card h3 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.6px;
+             color: var(--muted); font-weight: 600; }
+  .msg { white-space: pre-wrap; }
+  .meta-line { color: var(--muted); font-size: 13px; margin-top: 8px; }
+
+  .stages { list-style: none; margin: 0; padding: 0; }
+  .stages li { padding: 4px 0; color: var(--muted); }
+  .stages li.done::before { content: "✓ "; color: var(--green); }
+  .stages li.active::before { content: "· "; }
+  .stages li.active { color: var(--ink); }
+  .stages li.active .dots::after { content: "…"; animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: 0.3; } }
+
+  .verdict-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .confidence { font-size: 12px; color: var(--muted); }
+  .why { margin: 10px 0 0; }
+  .evidence { margin-top: 10px; padding: 10px 12px; background: var(--bg); border-radius: 8px;
+              font-size: 14px; }
+  .evidence .when { color: var(--muted); }
+
+  textarea.reply { width: 100%; min-height: 120px; font: inherit; padding: 10px 12px;
+                   border: 1px solid var(--line); border-radius: 8px; resize: vertical; }
+  .row { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+  button { font: inherit; font-size: 14px; padding: 7px 14px; border-radius: 8px;
+           border: 1px solid var(--line); background: var(--panel); cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button:hover { filter: brightness(0.97); }
+  .hint { font-size: 12.5px; color: var(--muted); }
+  .fallback-note { font-size: 12.5px; color: var(--amber); }
+
+  details.packet pre { background: #10161d; color: #dce5ee; padding: 14px; border-radius: 8px;
+                       overflow-x: auto; font-size: 13px; line-height: 1.55; white-space: pre-wrap; }
+  details.packet summary { cursor: pointer; font-weight: 600; }
+  .error-box { background: var(--red-bg); color: var(--red); border-radius: 8px; padding: 10px 12px; }
+  .empty { color: var(--muted); padding: 60px 0; text-align: center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Landed</h1>
+  <span class="sub">Ritmo · support inbox — “is this already fixed, and when does the fix reach this user?”</span>
+  <span id="mode"></span>
+</header>
+<main>
+  <section class="list" id="list">
+    <div class="composer">
+      <textarea id="new-text" placeholder="Paste a new piece of user feedback…"></textarea>
+      <button class="primary" id="new-btn">Add to inbox</button>
+    </div>
+    <div id="items"></div>
+  </section>
+  <section id="detail"><div class="empty">Select a feedback item — Landed reads it, searches the app’s change history, and tells you what to answer.</div></section>
+</main>
+
+<script>
+const VERDICT_LABEL = {
+  already_fixed: "Already fixed — update available",
+  fix_coming: "Fixed — on its way to users",
+  regression: "Should be fixed but isn’t — escalated",
+  not_fixed: "Not fixed yet — escalated",
+  uncertain: "Possibly related fix — needs a human look",
+  needs_info: "Ask the user for more detail",
+  not_a_bug: "Not a bug report",
+  failed: "Analysis unavailable",
+};
+const STAGES = [
+  ["intake", "Reading the report"],
+  ["search", "Searching the app’s change history"],
+  ["adjudicate", "Comparing with recent fixes"],
+  ["verdict", "Checking versions and releases"],
+  ["reply", "Drafting a reply"],
+];
+
+let items = [], selected = null, analyzing = null;
+
+async function boot() {
+  const meta = await (await fetch("/api/meta")).json();
+  const modeEl = document.getElementById("mode");
+  modeEl.textContent = meta.mode === "live"
+    ? `live · ${meta.commits} changes indexed`
+    : `demo replay · ${meta.commits} changes indexed`;
+  modeEl.classList.toggle("live", meta.mode === "live");
+  await refreshList();
+}
+
+async function refreshList() {
+  items = await (await fetch("/api/items")).json();
+  const box = document.getElementById("items");
+  box.innerHTML = "";
+  for (const it of items) {
+    const div = document.createElement("div");
+    div.className = "item" + (selected === it.id ? " selected" : "");
+    div.onclick = () => select(it.id);
+    div.innerHTML = `
+      <div class="top"><span>${esc(it.channel)}</span>
+        ${it.verdict ? `<span class="chip c-${it.verdict}">${esc(shortLabel(it.verdict))}</span>` : ""}</div>
+      <div class="snippet">${esc(it.text)}</div>`;
+    box.appendChild(div);
+  }
+}
+function shortLabel(v) { return VERDICT_LABEL[v].split(" — ")[0]; }
+
+async function select(id) {
+  selected = id;
+  await refreshList();
+  const item = items.find(i => i.id === id);
+  const cached = await fetch(`/api/items/${id}/result`);
+  renderDetail(item, cached.ok ? await cached.json() : null);
+  if (!cached.ok) analyze(item);
+}
+
+function renderDetail(item, result) {
+  const el = document.getElementById("detail");
+  el.innerHTML = `
+    <div class="card">
+      <h3>Feedback · ${esc(item.channel)}</h3>
+      <div class="msg">${esc(item.text)}</div>
+      <div class="meta-line" id="intake-meta"></div>
+    </div>
+    <div class="card" id="progress-card" hidden>
+      <h3>Analyzing</h3><ul class="stages" id="stages"></ul>
+    </div>
+    <div id="result-area"></div>`;
+  if (result) renderResult(result);
+}
+
+function analyze(item) {
+  if (analyzing) analyzing.close();
+  const card = document.getElementById("progress-card");
+  card.hidden = false;
+  const ul = document.getElementById("stages");
+  ul.innerHTML = STAGES.map(([k, label]) =>
+    `<li id="st-${k}"><span class="label">${label}</span><span class="dots"></span></li>`).join("");
+  mark("intake", "active");
+
+  const es = new EventSource(`/api/items/${item.id}/analyze`);
+  analyzing = es;
+  let friendlyErr = null;
+  const advance = (stage, note) => {
+    const pos = STAGES.findIndex(([k]) => k === stage);
+    for (let i = 0; i <= pos; i++) mark(STAGES[i][0], "done");
+    if (note) document.querySelector(`#st-${stage} .label`).textContent = note;
+    if (pos + 1 < STAGES.length) mark(STAGES[pos + 1][0], "active");
+  };
+  es.addEventListener("intake", e => {
+    const d = JSON.parse(e.data);
+    advance("intake");
+    document.getElementById("intake-meta").textContent =
+      `Understood as: ${d.summary} · ${d.kind.replace("_", " ")} · app version ${d.app_version ?? "unknown"}`;
+  });
+  es.addEventListener("search", e => {
+    const d = JSON.parse(e.data);
+    advance("search", `Searched ${d.corpus} changes — ${d.count} possibly related`);
+  });
+  es.addEventListener("adjudicate", e => advance("adjudicate"));
+  es.addEventListener("verdict", e => advance("verdict"));
+  es.addEventListener("reply", e => advance("reply"));
+  es.addEventListener("pipeline_error", e => {
+    friendlyErr = JSON.parse(e.data).message;
+  });
+  es.addEventListener("done", e => {
+    es.close(); analyzing = null;
+    STAGES.forEach(([k]) => mark(k, "done"));
+    renderResult(JSON.parse(e.data), friendlyErr);
+    refreshList();
+  });
+  es.onerror = () => { es.close(); analyzing = null; };
+}
+
+function mark(stage, cls) {
+  const li = document.getElementById(`st-${stage}`);
+  if (li) { li.classList.remove("active"); li.classList.add(cls); }
+}
+
+function renderResult(r, friendlyErr) {
+  const v = r.verdict;
+  const area = document.getElementById("result-area");
+  const progress = document.getElementById("progress-card");
+  if (progress) progress.hidden = true;
+
+  if (r.intake) {
+    document.getElementById("intake-meta").textContent =
+      `Understood as: ${r.intake.summary} · ${r.intake.kind.replace("_", " ")} · app version ${r.intake.app_version ?? "unknown"}`;
+  }
+
+  let evidence = "";
+  if (v.fix_commit) {
+    const rel = v.fix_release
+      ? (v.fix_release.status === "released"
+          ? `shipped in v${v.fix_release.version} (released ${v.fix_release.released_at ?? ""})`
+          : `packaged in v${v.fix_release.version} — ${v.fix_release.status}${v.fix_release.store_eta ? ", in stores ~" + v.fix_release.store_eta : ""}`)
+      : "not in a tagged release yet — goes out with the next one";
+    evidence = `<div class="evidence"><span class="when">${esc(v.fix_commit.date.slice(0, 10))}</span> —
+      “${esc(v.fix_commit.subject)}” · ${esc(rel)}</div>`;
+  }
+
+  const conf = v.confidence ? `<span class="confidence">match confidence ${(v.confidence * 100).toFixed(0)}%</span>` : "";
+  let html = `
+    <div class="card">
+      <h3>Verdict</h3>
+      <div class="verdict-head">
+        <span class="chip big c-${v.verdict}">${VERDICT_LABEL[v.verdict]}</span>${conf}
+      </div>
+      <p class="why">${esc(v.reasoning)}</p>
+      ${evidence}
+      ${r.error ? `<div class="error-box" style="margin-top:10px">${esc(friendlyErr ?? "Analysis could not finish — the item was kept and nothing was guessed.")}</div>` : ""}
+    </div>`;
+
+  if (r.reply_draft) {
+    html += `
+    <div class="card">
+      <h3>Reply to send</h3>
+      <textarea class="reply" id="reply-text">${esc(r.reply_draft)}</textarea>
+      <div class="row">
+        <button class="primary" onclick="copyText('reply-text', this)">Copy reply</button>
+        ${r.reply_is_fallback
+          ? `<span class="fallback-note">Safe template used — the drafted reply failed validation.</span>`
+          : `<span class="hint">Edit freely — nothing is sent automatically.</span>`}
+      </div>
+    </div>`;
+  }
+
+  if (r.escalation_packet) {
+    html += `
+    <div class="card">
+      <details class="packet" ${["regression", "failed"].includes(v.verdict) ? "open" : ""}>
+        <summary>Engineering handoff — ready to paste</summary>
+        <pre id="packet-text">${esc(r.escalation_packet)}</pre>
+        <button onclick="copyText('packet-text', this)">Copy for engineering</button>
+      </details>
+    </div>`;
+  }
+  area.innerHTML = html;
+}
+
+function copyText(id, btn) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.value ?? el.textContent).then(() => {
+    const old = btn.textContent; btn.textContent = "Copied ✓";
+    setTimeout(() => (btn.textContent = old), 1500);
+  });
+}
+
+document.getElementById("new-btn").onclick = async () => {
+  const ta = document.getElementById("new-text");
+  if (!ta.value.trim()) return;
+  const res = await fetch("/api/items", { method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: ta.value }) });
+  const item = await res.json();
+  ta.value = "";
+  await refreshList();
+  select(item.id);
+};
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+boot();
+</script>
+</body>
+</html>

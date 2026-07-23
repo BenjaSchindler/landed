@@ -1,0 +1,31 @@
+{
+ "name": "intake",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "kind": "bug",
+  "summary": "App crashes when uploading a profile photo from the gallery",
+  "symptoms": [
+   "app closes immediately when picking a profile photo from the gallery"
+  ],
+  "app_version": "1.0.0",
+  "platform": "android",
+  "language": "es",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "se cae al subir foto"
+   ],
+   "dev_terms": [
+    "crash",
+    "avatar",
+    "upload",
+    "photo",
+    "gallery",
+    "permission"
+   ]
+  }
+ }
+}

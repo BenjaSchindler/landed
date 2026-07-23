@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "match_sha": "513eaa96086b22b9df576dbd0a2ca8f9b4ecd3c0",
+  "confidence": 0.93,
+  "reasoning": "A March change fixes the crash when uploading a profile photo from the gallery on newer Android versions.",
+  "symptom_addressed": "crash when uploading profile photo"
+ }
+}

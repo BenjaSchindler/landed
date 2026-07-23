@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "match_sha": "7311bc71f56d57b6b45110b4d59c13f6228dbe69",
+  "confidence": 0.88,
+  "reasoning": "A July change makes the stats page open fast with a year of history — the slow-open behavior reported.",
+  "symptom_addressed": "stats screen slow to open with large history"
+ }
+}

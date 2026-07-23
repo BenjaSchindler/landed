@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+demo/app-repo/
+evals/last_run.json
+.claude/

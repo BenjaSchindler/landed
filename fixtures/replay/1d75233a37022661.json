@@ -1,0 +1,30 @@
+{
+ "name": "intake",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "kind": "bug",
+  "summary": "Streak number overlaps the title text on a small screen",
+  "symptoms": [
+   "streak counter overlaps the header text on iPhone SE"
+  ],
+  "app_version": "1.1.0",
+  "platform": "ios",
+  "language": "es",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "número se superpone con el título"
+   ],
+   "dev_terms": [
+    "streak",
+    "layout",
+    "overlap",
+    "header",
+    "small screen"
+   ]
+  }
+ }
+}

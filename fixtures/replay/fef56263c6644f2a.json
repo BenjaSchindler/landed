@@ -1,0 +1,33 @@
+{
+ "name": "intake",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "kind": "bug",
+  "summary": "Phone runs warm and battery drains overnight, app shown as top consumer",
+  "symptoms": [
+   "high battery drain overnight attributed to the app",
+   "device runs warm"
+  ],
+  "app_version": "1.1.0",
+  "platform": "android",
+  "language": "en",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "battery drains overnight",
+    "phone warm"
+   ],
+   "dev_terms": [
+    "battery",
+    "drain",
+    "background task",
+    "wakelock",
+    "power",
+    "overnight"
+   ]
+  }
+ }
+}

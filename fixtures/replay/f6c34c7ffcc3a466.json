@@ -1,0 +1,7 @@
+{
+ "name": "reply",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": "Thanks for flagging this — you're right, that's the opposite of calming. We found and fixed exactly this: the timer now picks up where it left off when you return. The fix is packaged in version 1.2.0, which is in store review and should reach you around 2026-07-28. No action needed on your side. — The Ritmo team"
+}

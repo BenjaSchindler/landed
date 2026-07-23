@@ -1,0 +1,31 @@
+{
+ "name": "intake",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "kind": "bug",
+  "summary": "Breathing timer starts over when an alarm interrupts the session",
+  "symptoms": [
+   "breathing timer restarts from the beginning after an interruption by another app"
+  ],
+  "app_version": "1.1.0",
+  "platform": "unknown",
+  "language": "en",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "timer starts over alarm"
+   ],
+   "dev_terms": [
+    "timer",
+    "restart",
+    "reset",
+    "resume",
+    "interruption",
+    "breathing"
+   ]
+  }
+ }
+}

@@ -1,0 +1,7 @@
+{
+ "name": "reply",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": "Thanks for reporting this! We found and fixed exactly this: the timer now resumes where it left off after an interruption. The fix ships in version 1.2.0, currently in store review — it should reach you around 2026-07-28. — The Ritmo team"
+}

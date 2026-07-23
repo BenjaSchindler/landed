@@ -1,0 +1,56 @@
+[
+  {
+    "id": "fb-001",
+    "channel": "play-store review",
+    "received_at": "2026-07-22T09:14:00-04:00",
+    "text": "Hola, uso Ritmo todos los días y me encanta, pero cuando me llaman por teléfono a mitad de un ejercicio, al volver se borró todo lo que había contestado 😤 me ha pasado tres veces. Versión 1.0.1, tengo un Xiaomi con Android."
+  },
+  {
+    "id": "fb-002",
+    "channel": "in-app feedback",
+    "received_at": "2026-07-22T11:02:00-04:00",
+    "text": "the breathing timer restarts from zero every time I check a text mid-session. super frustrating, kind of defeats the point of a calm app :( iphone 14, app version 1.1.0"
+  },
+  {
+    "id": "fb-003",
+    "channel": "beta tester (TestFlight)",
+    "received_at": "2026-07-22T13:40:00-04:00",
+    "text": "sigo perdiendo mis respuestas del ejercicio cuando cambio de app un momento… pensé que esto ya lo habían arreglado?? estoy en la 1.2.0 del beta"
+  },
+  {
+    "id": "fb-004",
+    "channel": "email",
+    "received_at": "2026-07-22T15:21:00-04:00",
+    "text": "Since a few days my phone gets warm and the battery drains a lot overnight, and Ritmo shows as the top consumer in battery settings. I'm on 1.1.0 on a Pixel 7."
+  },
+  {
+    "id": "fb-005",
+    "channel": "in-app feedback",
+    "received_at": "2026-07-22T16:05:00-04:00",
+    "text": "me encantaría poder exportar mi historial a PDF para llevárselo a mi psicóloga 🙏 gracias por la app, la uso hace meses"
+  },
+  {
+    "id": "fb-006",
+    "channel": "app-store review",
+    "received_at": "2026-07-23T08:30:00-04:00",
+    "text": "Good app but I get the same daily reminder notification twice every morning, about a minute apart. Annoying enough that I might turn notifications off."
+  },
+  {
+    "id": "fb-007",
+    "channel": "email",
+    "received_at": "2026-07-23T09:55:00-04:00",
+    "text": "hola! la app se cae cuando intento subir mi foto de perfil, la elijo de la galería y se cierra al tiro. tengo un samsung galaxy a54, version 1.0.0 dice en ajustes"
+  },
+  {
+    "id": "fb-008",
+    "channel": "in-app feedback",
+    "received_at": "2026-07-23T10:41:00-04:00",
+    "text": "minor thing: the streak counter overlaps the header text on my iphone SE, hard to read the number. v1.1.0"
+  },
+  {
+    "id": "fb-009",
+    "channel": "email",
+    "received_at": "2026-07-23T11:27:00-04:00",
+    "text": "The stats screen takes forever to open for me, like 4-5 seconds of blank screen. I've been using the app for over a year so I have a lot of data in there. Version 1.1.0, iPhone 13."
+  }
+]

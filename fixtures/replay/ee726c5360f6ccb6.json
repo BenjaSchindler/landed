@@ -1,0 +1,30 @@
+{
+ "name": "intake",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "kind": "bug",
+  "summary": "Phone hot and battery drained since leaving the app open overnight",
+  "symptoms": [
+   "high battery drain and device heat when the app stays open overnight"
+  ],
+  "app_version": "1.1.0",
+  "platform": "android",
+  "language": "en",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "phone hot battery gone"
+   ],
+   "dev_terms": [
+    "battery",
+    "drain",
+    "overnight",
+    "wakelock",
+    "background"
+   ]
+  }
+ }
+}

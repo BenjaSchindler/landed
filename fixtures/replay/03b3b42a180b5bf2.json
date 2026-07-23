@@ -1,0 +1,33 @@
+{
+ "name": "intake",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "kind": "bug",
+  "summary": "Breathing timer restarts from zero when the user briefly switches apps",
+  "symptoms": [
+   "breathing timer resets to zero after switching to another app and back"
+  ],
+  "app_version": "1.1.0",
+  "platform": "ios",
+  "language": "en",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "timer restarts",
+    "check a text"
+   ],
+   "dev_terms": [
+    "timer",
+    "restart",
+    "reset",
+    "focus",
+    "resume",
+    "background",
+    "breathing session"
+   ]
+  }
+ }
+}

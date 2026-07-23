@@ -1,0 +1,7 @@
+{
+ "name": "reply",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": "Thanks for reporting this — with a year of entries you hit exactly the case we just fixed: the stats screen was recomputing everything each time it opened. The fix is already done and ships with the next update. Nothing to do on your side; your data is untouched. — The Ritmo team"
+}

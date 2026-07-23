@@ -1,0 +1,29 @@
+{
+ "name": "intake",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "kind": "bug",
+  "summary": "Written reflections are erased when a phone call arrives; on 1.2.0",
+  "symptoms": [
+   "in-progress exercise answers are lost when the app goes to background during a call"
+  ],
+  "app_version": "1.2.0",
+  "platform": "unknown",
+  "language": "es",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "se borró lo que escribí llamada"
+   ],
+   "dev_terms": [
+    "persist answers",
+    "background",
+    "exercise runner",
+    "restore"
+   ]
+  }
+ }
+}

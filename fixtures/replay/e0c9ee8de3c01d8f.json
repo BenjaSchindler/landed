@@ -1,0 +1,27 @@
+{
+ "name": "intake",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "kind": "bug",
+  "summary": "Unspecified crashes",
+  "symptoms": [],
+  "app_version": null,
+  "platform": "unknown",
+  "language": "en",
+  "specific_enough": false,
+  "missing_info": [
+   "What are you doing in the app when it crashes?",
+   "Which app version are you on? You can see it in Settings > About."
+  ],
+  "search_terms": {
+   "user_terms": [
+    "crashes"
+   ],
+   "dev_terms": [
+    "crash"
+   ]
+  }
+ }
+}

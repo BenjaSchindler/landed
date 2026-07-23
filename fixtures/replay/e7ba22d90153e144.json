@@ -1,0 +1,31 @@
+{
+ "name": "intake",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "kind": "bug",
+  "summary": "Stats screen takes several seconds of blank screen to open with a year of data",
+  "symptoms": [
+   "stats screen takes 4-5 seconds to open for accounts with a lot of history"
+  ],
+  "app_version": "1.1.0",
+  "platform": "ios",
+  "language": "en",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "stats screen takes forever"
+   ],
+   "dev_terms": [
+    "stats",
+    "slow",
+    "performance",
+    "charts",
+    "memoize",
+    "history"
+   ]
+  }
+ }
+}

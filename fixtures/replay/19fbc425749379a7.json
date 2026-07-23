@@ -1,0 +1,25 @@
+{
+ "name": "intake",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "kind": "bug",
+  "summary": "General complaint that the app got worse; no concrete symptom",
+  "symptoms": [],
+  "app_version": null,
+  "platform": "unknown",
+  "language": "en",
+  "specific_enough": false,
+  "missing_info": [
+   "What changed for you — is something failing, slower, or harder to use?",
+   "Which app version are you on? You can see it in Settings > About."
+  ],
+  "search_terms": {
+   "user_terms": [
+    "app is bad"
+   ],
+   "dev_terms": []
+  }
+ }
+}

@@ -1,0 +1,32 @@
+{
+ "name": "intake",
+ "kind": "authored",
+ "model": "hand-authored",
+ "authored": true,
+ "output": {
+  "kind": "bug",
+  "summary": "Exercise answers are erased when a phone call interrupts the exercise",
+  "symptoms": [
+   "in-progress exercise answers are lost when the app goes to background during a phone call"
+  ],
+  "app_version": "1.0.1",
+  "platform": "android",
+  "language": "es",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "se borra lo contestado",
+    "llamada ejercicio"
+   ],
+   "dev_terms": [
+    "persist answers",
+    "background",
+    "AppState",
+    "exercise runner",
+    "restore state",
+    "lost progress"
+   ]
+  }
+ }
+}
