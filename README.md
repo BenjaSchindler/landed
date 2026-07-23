@@ -1,76 +1,82 @@
-# Landed — "is this already fixed, and when does the fix reach this user?"
+# Landed
 
-Landed is a support-inbox tool for teams that ship through app stores. A support
-agent pastes (or receives) a piece of raw user feedback — any language, any
-shape — and gets back an **evidence-gated verdict** (*already fixed / fix on its
-way / regression / not fixed / needs info*), a **ready-to-send reply** in the
-reporter's language, and, when a human is needed, a **pre-built engineering
+**"Is this already fixed — and does the fix reach *this* user's version?"**
+
+Landed is a support-inbox tool for teams that ship through app stores. Paste
+(or receive) a piece of raw user feedback — any language, any shape — and get
+back an **evidence-gated verdict** (*already fixed / fix on its way /
+regression / not fixed / needs info*), a **ready-to-send reply in the
+reporter's language**, and, when a human is needed, a **pre-built engineering
 handoff** — without interrupting an engineer.
 
-It answers the question support actually has: not "is this bug known?" but
-*"has this been fixed, and is the fix in **this reporter's** hands yet?"* —
-which requires joining fuzzy user language against the git history **and** the
-release/rollout state, then doing version arithmetic the model is never
-trusted to do.
+![the Landed inbox](docs/screenshot.png)
+
+The trick is what it *doesn't* trust the model with: a language model bridges
+fuzzy user vocabulary to engineer vocabulary ("everything I answered is gone"
+→ `persist runner state on AppState change`), but whether that fix is in the
+reporter's hands is **version arithmetic over git tags and a release
+manifest — pure code**. The model never says "fixed."
 
 See [DESIGN.md](DESIGN.md) for the problem thesis, architecture, and tradeoffs.
 
-## Run it (no API key needed)
+## Run it in 60 seconds (no API key)
 
-The repo ships with recorded model outputs ("replay mode"), a deterministic
-demo product (**Ritmo**, a bilingual habit-tracking app with 32 commits and 4
-releases), and 9 seeded feedback items:
+The repo ships with **recorded gpt-5.5 outputs** for every demo item and eval
+case, a deterministic demo product (**Ritmo**, a habit-tracking app with 32
+commits and 4 releases), and 9 seeded feedback items:
 
 ```bash
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-# (or: uv venv .venv && uv pip install --python .venv/bin/python -r requirements.txt)
-
-.venv/bin/uvicorn harness.server:app --port 8712
-# open http://localhost:8712 and click through the inbox
+make setup      # python3 -m venv .venv && pip install -r requirements.txt
+make demo       # → http://localhost:8712 — click an item, or "Analyze all"
 ```
 
-The demo repo is generated automatically on first boot (deterministic dates and
-authors, so commit shas — and therefore fixtures — are stable across machines).
+The demo repo is generated on first boot with fixed dates and authors, so
+commit shas — and therefore the recorded fixtures — are stable across machines.
 
 ## Live mode
 
-```bash
-export OPENAI_API_KEY=sk-...               # any key with gpt-5.5 access
-.venv/bin/uvicorn harness.server:app --port 8712
-```
-
-With credentials resolving, the pipeline calls the model for real — including
-for feedback you paste yourself. `OPENAI_MODEL` overrides the default model
-(`gpt-5.5`).
-
-To replace the hand-authored fixtures with real recorded model outputs:
+Put a key in `.env` at the repo root (it's gitignored) or export it:
 
 ```bash
-LANDED_RECORD=1 .venv/bin/python -m scripts.record_fixtures
+echo 'OPENAI_API_KEY=sk-...' > .env
+make demo       # header badge flips to "live · gpt-5.5"
 ```
+
+Now the pipeline calls the model for real — including for feedback you paste
+yourself. `OPENAI_MODEL` overrides the default (`gpt-5.5`). Calls go through
+the Responses API with `store=false`; user feedback is not retained
+server-side.
 
 ## Evals
 
 ```bash
-.venv/bin/python -m harness.eval               # live if credentials resolve, else replay
-LANDED_REPLAY=1 .venv/bin/python -m harness.eval   # force replay
+make test          # unit tests for the deterministic core (no key needed)
+make logic         # hand-authored model outputs through the real pipeline (no key)
+make eval-replay   # grade the shipped recorded fixtures, strict (no key)
+make record        # re-record every fixture live and grade end-to-end (~70 calls)
 ```
 
-25 labeled cases (Spanish/Chilean and English, vague and precise, including
-regression traps and near-miss baits). The headline metric is the
-**false-"fixed" rate** — telling a user something is handled when it isn't is
-the one failure the tool must not make. In replay mode this grades the
-deterministic harness (routing, retrieval, citation checks, version
-arithmetic); after `record_fixtures` it grades the live model end to end.
+25 labeled cases: the 9 inbox items plus paraphrases, Spanish/Chilean dialect
+variants, odd version formats, vague reports, and deliberate traps (a streak
+*timezone* fix that must not match a streak *layout* complaint; two regression
+cases where the reporter's version must flip the verdict). The headline metric
+is the **false-"fixed" rate** — telling a user something is handled when it
+isn't is the one failure the tool must not make.
+
+Latest live run (gpt-5.5, 2026-07-23): **25/25 verdicts correct, 0/12
+fixed-claims wrong, 0 invalid citations**, ~9s median per item. The first live
+run also caught a real harness bug (a `v`-prefixed version misread by the
+reply guardrail's regex) — kept as a unit test; the story is in
+[DESIGN.md](DESIGN.md#4-how-i-know-it-works).
 
 ## Point it at your own repo
 
 ```bash
-LANDED_REPO=/path/to/your/repo .venv/bin/uvicorn harness.server:app --port 8712
+LANDED_REPO=/path/to/your/repo make demo
 ```
 
 Without a `LANDED_RELEASES` manifest, every git tag counts as a released
-version. Pasting feedback about your own product requires live mode.
+version. Analyzing your own feedback requires live mode.
 
 ## What's real vs. stubbed
 
@@ -79,7 +85,7 @@ version. Pasting feedback about your own product requires live mode.
 citation validation and a corrective retry, deterministic version arithmetic,
 reply drafting with a version-allowlist guardrail and a templated safe
 fallback, escalation packet generation, SSE progress streaming, the eval
-runner, and graceful degradation on every failure path.
+runner, unit tests, CI, and graceful degradation on every failure path.
 
 **Stubbed / simulated:**
 - The product under support (Ritmo) is synthetic — generated git history plus a
@@ -99,11 +105,12 @@ a file; duplicate/known-issue clustering across reports is out of scope.
 ## Repo layout
 
 ```
-harness/         the pipeline: schemas, indexer (git+BM25), llm seam, prompts,
-                 pipeline (guardrails + verdict logic), FastAPI server, eval runner
-web/index.html   the support inbox (vanilla JS, no build step)
-demo/            generator for the deterministic demo repo + releases + seed feedback
-evals/           25 labeled cases (gold verdicts + fix versions)
-fixtures/replay/ recorded/authored model outputs for keyless runs
-scripts/         author_fixtures (fixtures + logic test), record_fixtures (live re-record)
+harness/          the pipeline: schemas, indexer (git+BM25), llm seam (Responses API),
+                  prompts, pipeline (guardrails + verdict logic), FastAPI server, evals
+web/index.html    the support inbox (vanilla JS, no build step)
+demo/             generator for the deterministic demo repo + releases + seed feedback
+evals/            25 labeled cases (gold verdicts + fix versions) + last run results
+fixtures/replay/  recorded gpt-5.5 outputs — keyless runs replay these
+scripts/          author_fixtures: the harness-logic gate (model played by hand)
+tests/            unit tests for version arithmetic, guardrails, fallbacks
 ```

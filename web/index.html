@@ -3,49 +3,67 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Landed — did that fix reach your user?</title>
+<title>Landed — is it fixed, and does this user have it?</title>
 <style>
   :root {
-    --bg: #f6f7f9; --panel: #ffffff; --ink: #1b2733; --muted: #66788a;
-    --line: #e3e8ee; --accent: #2557d6;
-    --green: #1e8e5a; --green-bg: #e7f6ee;
-    --blue: #1d6fb8; --blue-bg: #e8f2fb;
-    --red: #c23934; --red-bg: #fdeceb;
-    --orange: #b95d10; --orange-bg: #fdf1e3;
-    --amber: #9a7b0a; --amber-bg: #fbf4d9;
-    --gray: #5a6b7b; --gray-bg: #eef1f4;
-    --purple: #6b4fbb; --purple-bg: #f0ecfa;
+    --bg: #f4f5f8; --panel: #ffffff; --ink: #16212b; --muted: #64748b;
+    --line: #e5e9ef; --accent: #2f56d9; --accent-soft: #eef2fe;
+    --green: #177a4c; --green-bg: #e5f6ec;
+    --blue: #185ea8; --blue-bg: #e7f1fb;
+    --red: #c0362f; --red-bg: #fdecea;
+    --orange: #a8540c; --orange-bg: #fdf0e2;
+    --amber: #8f720a; --amber-bg: #faf3d7;
+    --gray: #556270; --gray-bg: #edf0f4;
+    --purple: #6246b8; --purple-bg: #efecfa;
+    --shadow: 0 1px 2px rgba(16,24,40,.05), 0 1px 3px rgba(16,24,40,.06);
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font: 15px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-         background: var(--bg); color: var(--ink); }
-  header { display: flex; align-items: baseline; gap: 14px; padding: 14px 22px;
+  body { margin: 0; font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+         Helvetica, Arial, sans-serif; background: var(--bg); color: var(--ink);
+         -webkit-font-smoothing: antialiased; }
+
+  header { display: flex; align-items: center; gap: 12px; padding: 13px 24px;
            background: var(--panel); border-bottom: 1px solid var(--line); }
-  header h1 { font-size: 19px; margin: 0; letter-spacing: -0.2px; }
-  header .sub { color: var(--muted); font-size: 13px; }
-  #mode { margin-left: auto; font-size: 12px; color: var(--muted); background: var(--gray-bg);
-          padding: 3px 10px; border-radius: 999px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand h1 { font-size: 18px; margin: 0; letter-spacing: -0.3px; font-weight: 700; }
+  .brand svg { display: block; }
+  header .sub { color: var(--muted); font-size: 13px; margin-left: 2px;
+                border-left: 1px solid var(--line); padding-left: 14px; }
+  #mode { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--gray);
+          background: var(--gray-bg); padding: 4px 12px; border-radius: 999px; }
   #mode.live { color: var(--green); background: var(--green-bg); }
 
-  main { display: grid; grid-template-columns: 360px 1fr; gap: 18px; padding: 18px 22px;
-         max-width: 1280px; margin: 0 auto; align-items: start; }
+  main { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 20px;
+         padding: 20px 24px; max-width: 1320px; margin: 0 auto; align-items: start; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
 
-  .list { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-  .composer { padding: 12px; border-bottom: 1px solid var(--line); }
-  .composer textarea { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
-                       font: inherit; resize: vertical; min-height: 40px; }
-  .composer button { margin-top: 6px; }
-  .item { padding: 12px 14px; border-bottom: 1px solid var(--line); cursor: pointer; }
-  .item:hover { background: #fafbfc; }
-  .item.selected { background: #f0f4ff; box-shadow: inset 3px 0 0 var(--accent); }
-  .item .top { display: flex; justify-content: space-between; gap: 8px; font-size: 12px;
-               color: var(--muted); margin-bottom: 3px; }
+  .list { background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+          overflow: hidden; box-shadow: var(--shadow); }
+  .list-head { display: flex; align-items: center; justify-content: space-between;
+               padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .list-head .title { font-size: 13px; font-weight: 700; text-transform: uppercase;
+                      letter-spacing: 0.6px; color: var(--muted); }
+  .item { padding: 12px 16px; border-bottom: 1px solid var(--line); cursor: pointer;
+          transition: background 0.12s; }
+  .item:last-child { border-bottom: none; }
+  .item:hover { background: #f7f9fc; }
+  .item.selected { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+  .item .top { display: flex; justify-content: space-between; align-items: center; gap: 8px;
+               font-size: 12px; color: var(--muted); margin-bottom: 4px; }
   .item .snippet { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-                   overflow: hidden; font-size: 14px; }
+                   overflow: hidden; font-size: 14px; color: #2a3644; }
+  .item.working .top::after { content: "analyzing…"; color: var(--accent); font-weight: 600; }
 
-  .chip { display: inline-block; font-size: 12px; font-weight: 600; border-radius: 999px;
+  .composer { padding: 12px 16px; border-top: 1px solid var(--line); background: #fafbfd; }
+  .composer textarea { width: 100%; border: 1px solid var(--line); border-radius: 9px;
+                       padding: 9px 11px; font: inherit; font-size: 14px; resize: vertical;
+                       min-height: 42px; background: var(--panel); }
+  .composer textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  .composer .row { margin-top: 8px; }
+
+  .chip { display: inline-block; font-size: 12px; font-weight: 650; border-radius: 999px;
           padding: 2px 10px; white-space: nowrap; }
-  .chip.big { font-size: 14px; padding: 5px 14px; }
+  .chip.big { font-size: 14px; padding: 6px 15px; }
   .c-already_fixed { color: var(--green); background: var(--green-bg); }
   .c-fix_coming    { color: var(--blue); background: var(--blue-bg); }
   .c-regression    { color: var(--red); background: var(--red-bg); }
@@ -55,109 +73,170 @@
   .c-not_a_bug     { color: var(--purple); background: var(--purple-bg); }
   .c-failed        { color: var(--gray); background: var(--gray-bg); }
 
-  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
-          padding: 16px 18px; margin-bottom: 14px; }
-  .card h3 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.6px;
-             color: var(--muted); font-weight: 600; }
-  .msg { white-space: pre-wrap; }
-  .meta-line { color: var(--muted); font-size: 13px; margin-top: 8px; }
+  .lang-pill { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; color: var(--muted);
+               border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+          padding: 18px 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .card h3 { margin: 0 0 10px; font-size: 12.5px; text-transform: uppercase;
+             letter-spacing: 0.7px; color: var(--muted); font-weight: 700; }
+  .card h3 .aside { float: right; text-transform: none; letter-spacing: 0; font-weight: 500; }
+  .msg { white-space: pre-wrap; font-size: 15px; }
+  .meta-line { color: var(--muted); font-size: 13px; margin-top: 10px; }
 
   .stages { list-style: none; margin: 0; padding: 0; }
-  .stages li { padding: 4px 0; color: var(--muted); }
-  .stages li.done::before { content: "✓ "; color: var(--green); }
-  .stages li.active::before { content: "· "; }
-  .stages li.active { color: var(--ink); }
-  .stages li.active .dots::after { content: "…"; animation: pulse 1s infinite; }
-  @keyframes pulse { 50% { opacity: 0.3; } }
+  .stages li { padding: 5px 0; color: var(--muted); display: flex; gap: 9px; align-items: baseline; }
+  .stages li::before { content: "○"; color: var(--line); font-size: 13px; }
+  .stages li.done::before { content: "✓"; color: var(--green); }
+  .stages li.active::before { content: "●"; color: var(--accent); animation: pulse 1s infinite; }
+  .stages li.active { color: var(--ink); font-weight: 550; }
+  @keyframes pulse { 50% { opacity: 0.25; } }
 
-  .verdict-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .confidence { font-size: 12px; color: var(--muted); }
-  .why { margin: 10px 0 0; }
-  .evidence { margin-top: 10px; padding: 10px 12px; background: var(--bg); border-radius: 8px;
-              font-size: 14px; }
-  .evidence .when { color: var(--muted); }
+  .verdict-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .confidence { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted); }
+  .confbar { width: 64px; height: 5px; border-radius: 3px; background: var(--gray-bg); overflow: hidden; }
+  .confbar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+  .why { margin: 12px 0 0; color: #2a3644; }
+  .evidence { margin-top: 12px; padding: 11px 13px; background: #f7f9fc; border: 1px solid var(--line);
+              border-radius: 9px; font-size: 14px; }
+  .evidence .when { color: var(--muted); font-variant-numeric: tabular-nums; }
 
-  textarea.reply { width: 100%; min-height: 120px; font: inherit; padding: 10px 12px;
-                   border: 1px solid var(--line); border-radius: 8px; resize: vertical; }
-  .row { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
-  button { font: inherit; font-size: 14px; padding: 7px 14px; border-radius: 8px;
-           border: 1px solid var(--line); background: var(--panel); cursor: pointer; }
+  textarea.reply { width: 100%; min-height: 128px; font: inherit; font-size: 14.5px;
+                   padding: 11px 13px; border: 1px solid var(--line); border-radius: 9px;
+                   resize: vertical; line-height: 1.55; }
+  textarea.reply:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  .row { display: flex; gap: 10px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+  button { font: inherit; font-size: 14px; font-weight: 550; padding: 7px 15px; border-radius: 9px;
+           border: 1px solid var(--line); background: var(--panel); cursor: pointer;
+           transition: filter 0.12s; }
   button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  button:hover { filter: brightness(0.97); }
+  button.small { font-size: 12.5px; padding: 4px 11px; }
+  button:hover:not(:disabled) { filter: brightness(0.96); }
+  button:disabled { opacity: 0.55; cursor: default; }
   .hint { font-size: 12.5px; color: var(--muted); }
   .fallback-note { font-size: 12.5px; color: var(--amber); }
 
-  details.packet pre { background: #10161d; color: #dce5ee; padding: 14px; border-radius: 8px;
+  details.packet pre { background: #101720; color: #d9e2ec; padding: 15px; border-radius: 9px;
                        overflow-x: auto; font-size: 13px; line-height: 1.55; white-space: pre-wrap; }
-  details.packet summary { cursor: pointer; font-weight: 600; }
-  .error-box { background: var(--red-bg); color: var(--red); border-radius: 8px; padding: 10px 12px; }
-  .empty { color: var(--muted); padding: 60px 0; text-align: center; }
+  details.packet summary { cursor: pointer; font-weight: 650; }
+  .error-box { background: var(--red-bg); color: var(--red); border-radius: 9px; padding: 10px 13px; }
+  .empty { color: var(--muted); padding: 70px 30px; text-align: center; }
+  .empty .mark { margin-bottom: 14px; opacity: 0.9; }
+  .empty p { max-width: 420px; margin: 6px auto; }
 </style>
 </head>
 <body>
 <header>
-  <h1>Landed</h1>
-  <span class="sub">Ritmo · support inbox — “is this already fixed, and when does the fix reach this user?”</span>
+  <div class="brand">
+    <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#3b62e8"/><stop offset="1" stop-color="#2543ae"/>
+      </linearGradient></defs>
+      <rect width="26" height="26" rx="7" fill="url(#g)"/>
+      <path d="M13 5.5v8.5M9.5 10.8 13 14.3l3.5-3.5M7 19h12" stroke="#fff" stroke-width="2"
+            fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <h1>Landed</h1>
+  </div>
+  <span class="sub">Ritmo support inbox — is it fixed, and does <em>this</em> user have it?</span>
   <span id="mode"></span>
 </header>
 <main>
   <section class="list" id="list">
-    <div class="composer">
-      <textarea id="new-text" placeholder="Paste a new piece of user feedback…"></textarea>
-      <button class="primary" id="new-btn">Add to inbox</button>
+    <div class="list-head">
+      <span class="title" id="inbox-count">Inbox</span>
+      <button class="small" id="analyze-all">Analyze all</button>
     </div>
     <div id="items"></div>
+    <div class="composer">
+      <textarea id="new-text" placeholder="Paste new user feedback — any language, any shape…"></textarea>
+      <div class="row">
+        <button class="primary small" id="new-btn">Add to inbox</button>
+        <span class="hint">New items are analyzed when opened.</span>
+      </div>
+    </div>
   </section>
-  <section id="detail"><div class="empty">Select a feedback item — Landed reads it, searches the app’s change history, and tells you what to answer.</div></section>
+  <section id="detail">
+    <div class="card empty">
+      <div class="mark">
+        <svg width="34" height="34" viewBox="0 0 26 26"><rect width="26" height="26" rx="7" fill="#e5e9ef"/>
+        <path d="M13 5.5v8.5M9.5 10.8 13 14.3l3.5-3.5M7 19h12" stroke="#94a3b3" stroke-width="2"
+              fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <p><strong>Pick a feedback item</strong> — Landed reads it, searches the app's change
+      history, checks versions and releases, and hands you a verdict plus a reply to send.</p>
+      <p>Or hit <strong>Analyze all</strong> to triage the whole inbox.</p>
+    </div>
+  </section>
 </main>
 
 <script>
 const VERDICT_LABEL = {
   already_fixed: "Already fixed — update available",
   fix_coming: "Fixed — on its way to users",
-  regression: "Should be fixed but isn’t — escalated",
+  regression: "Should be fixed but isn't — escalated",
   not_fixed: "Not fixed yet — escalated",
   uncertain: "Possibly related fix — needs a human look",
   needs_info: "Ask the user for more detail",
   not_a_bug: "Not a bug report",
   failed: "Analysis unavailable",
 };
+const SHORT_LABEL = {
+  already_fixed: "Already fixed",
+  fix_coming: "Fix on its way",
+  regression: "Regression",
+  not_fixed: "Not fixed",
+  uncertain: "Needs a look",
+  needs_info: "Needs info",
+  not_a_bug: "Not a bug",
+  failed: "Failed",
+};
+const LANG_NAME = { es: "Spanish", en: "English", pt: "Portuguese", fr: "French", de: "German" };
 const STAGES = [
   ["intake", "Reading the report"],
-  ["search", "Searching the app’s change history"],
+  ["search", "Searching the app's change history"],
   ["adjudicate", "Comparing with recent fixes"],
   ["verdict", "Checking versions and releases"],
   ["reply", "Drafting a reply"],
 ];
 
-let items = [], selected = null, analyzing = null;
+let items = [], selected = null, analyzing = null, analyzingId = null, finishPending = null;
 
 async function boot() {
   const meta = await (await fetch("/api/meta")).json();
   const modeEl = document.getElementById("mode");
   modeEl.textContent = meta.mode === "live"
-    ? `live · ${meta.commits} changes indexed`
+    ? `live · ${meta.model} · ${meta.commits} changes indexed`
     : `demo replay · ${meta.commits} changes indexed`;
   modeEl.classList.toggle("live", meta.mode === "live");
   await refreshList();
+  const want = new URLSearchParams(location.search).get("item");
+  if (want && items.some(i => i.id === want)) select(want);
 }
 
 async function refreshList() {
   items = await (await fetch("/api/items")).json();
+  document.getElementById("inbox-count").textContent =
+    `Inbox · ${items.filter(i => !i.verdict).length} open`;
   const box = document.getElementById("items");
   box.innerHTML = "";
   for (const it of items) {
     const div = document.createElement("div");
-    div.className = "item" + (selected === it.id ? " selected" : "");
+    div.className = "item" + (selected === it.id ? " selected" : "")
+                  + (analyzingId === it.id ? " working" : "");
     div.onclick = () => select(it.id);
     div.innerHTML = `
-      <div class="top"><span>${esc(it.channel)}</span>
+      <div class="top"><span>${esc(it.channel)}${it.received_at ? " · " + fmtDate(it.received_at) : ""}</span>
         ${it.verdict ? `<span class="chip c-${it.verdict}">${esc(shortLabel(it.verdict))}</span>` : ""}</div>
       <div class="snippet">${esc(it.text)}</div>`;
     box.appendChild(div);
   }
 }
-function shortLabel(v) { return VERDICT_LABEL[v].split(" — ")[0]; }
+function shortLabel(v) { return SHORT_LABEL[v] ?? v; }
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return isNaN(d) ? "" : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
 async function select(id) {
   selected = id;
@@ -165,14 +244,15 @@ async function select(id) {
   const item = items.find(i => i.id === id);
   const cached = await fetch(`/api/items/${id}/result`);
   renderDetail(item, cached.ok ? await cached.json() : null);
-  if (!cached.ok) analyze(item);
+  if (!cached.ok) await analyze(item);
 }
 
 function renderDetail(item, result) {
   const el = document.getElementById("detail");
   el.innerHTML = `
     <div class="card">
-      <h3>Feedback · ${esc(item.channel)}</h3>
+      <h3>Feedback · ${esc(item.channel)}${item.received_at
+        ? `<span class="aside">${fmtDate(item.received_at)}</span>` : ""}</h3>
       <div class="msg">${esc(item.text)}</div>
       <div class="meta-line" id="intake-meta"></div>
     </div>
@@ -183,47 +263,60 @@ function renderDetail(item, result) {
   if (result) renderResult(result);
 }
 
+function intakeMeta(d) {
+  const lang = LANG_NAME[d.language] || (d.language || "").toUpperCase();
+  return `Understood as: ${d.summary} · ${d.kind.replace("_", " ")}`
+       + ` · app version ${d.app_version ?? "unknown"}` + (lang ? ` · ${lang}` : "");
+}
+
 function analyze(item) {
-  if (analyzing) analyzing.close();
+  if (analyzing) { analyzing.close(); if (finishPending) finishPending(); }
+  analyzingId = item.id;
+  refreshList();
   const card = document.getElementById("progress-card");
   card.hidden = false;
   const ul = document.getElementById("stages");
   ul.innerHTML = STAGES.map(([k, label]) =>
-    `<li id="st-${k}"><span class="label">${label}</span><span class="dots"></span></li>`).join("");
+    `<li id="st-${k}"><span class="label">${label}</span></li>`).join("");
   mark("intake", "active");
 
-  const es = new EventSource(`/api/items/${item.id}/analyze`);
-  analyzing = es;
-  let friendlyErr = null;
-  const advance = (stage, note) => {
-    const pos = STAGES.findIndex(([k]) => k === stage);
-    for (let i = 0; i <= pos; i++) mark(STAGES[i][0], "done");
-    if (note) document.querySelector(`#st-${stage} .label`).textContent = note;
-    if (pos + 1 < STAGES.length) mark(STAGES[pos + 1][0], "active");
-  };
-  es.addEventListener("intake", e => {
-    const d = JSON.parse(e.data);
-    advance("intake");
-    document.getElementById("intake-meta").textContent =
-      `Understood as: ${d.summary} · ${d.kind.replace("_", " ")} · app version ${d.app_version ?? "unknown"}`;
+  return new Promise(resolve => {
+    const es = new EventSource(`/api/items/${item.id}/analyze`);
+    analyzing = es;
+    finishPending = resolve;
+    let friendlyErr = null;
+    const finish = () => {
+      es.close(); analyzing = null; analyzingId = null; finishPending = null; resolve();
+    };
+    const advance = (stage, note) => {
+      const pos = STAGES.findIndex(([k]) => k === stage);
+      for (let i = 0; i <= pos; i++) mark(STAGES[i][0], "done");
+      if (note) { const l = document.querySelector(`#st-${stage} .label`); if (l) l.textContent = note; }
+      if (pos + 1 < STAGES.length) mark(STAGES[pos + 1][0], "active");
+    };
+    es.addEventListener("intake", e => {
+      const d = JSON.parse(e.data);
+      advance("intake");
+      const m = document.getElementById("intake-meta");
+      if (m) m.textContent = intakeMeta(d);
+    });
+    es.addEventListener("search", e => {
+      const d = JSON.parse(e.data);
+      advance("search", `Searched ${d.corpus} changes — ${d.count} possibly related`);
+    });
+    es.addEventListener("adjudicate", () => advance("adjudicate"));
+    es.addEventListener("verdict", () => advance("verdict"));
+    es.addEventListener("reply", () => advance("reply"));
+    es.addEventListener("pipeline_error", e => { friendlyErr = JSON.parse(e.data).message; });
+    es.addEventListener("done", e => {
+      STAGES.forEach(([k]) => mark(k, "done"));
+      const result = JSON.parse(e.data);
+      finish();
+      if (selected === item.id) renderResult(result, friendlyErr);
+      refreshList();
+    });
+    es.onerror = () => { finish(); refreshList(); };
   });
-  es.addEventListener("search", e => {
-    const d = JSON.parse(e.data);
-    advance("search", `Searched ${d.corpus} changes — ${d.count} possibly related`);
-  });
-  es.addEventListener("adjudicate", e => advance("adjudicate"));
-  es.addEventListener("verdict", e => advance("verdict"));
-  es.addEventListener("reply", e => advance("reply"));
-  es.addEventListener("pipeline_error", e => {
-    friendlyErr = JSON.parse(e.data).message;
-  });
-  es.addEventListener("done", e => {
-    es.close(); analyzing = null;
-    STAGES.forEach(([k]) => mark(k, "done"));
-    renderResult(JSON.parse(e.data), friendlyErr);
-    refreshList();
-  });
-  es.onerror = () => { es.close(); analyzing = null; };
 }
 
 function mark(stage, cls) {
@@ -236,24 +329,29 @@ function renderResult(r, friendlyErr) {
   const area = document.getElementById("result-area");
   const progress = document.getElementById("progress-card");
   if (progress) progress.hidden = true;
+  if (!area) return;
 
   if (r.intake) {
-    document.getElementById("intake-meta").textContent =
-      `Understood as: ${r.intake.summary} · ${r.intake.kind.replace("_", " ")} · app version ${r.intake.app_version ?? "unknown"}`;
+    const m = document.getElementById("intake-meta");
+    if (m) m.textContent = intakeMeta(r.intake);
   }
 
   let evidence = "";
   if (v.fix_commit) {
     const rel = v.fix_release
       ? (v.fix_release.status === "released"
-          ? `shipped in v${v.fix_release.version} (released ${v.fix_release.released_at ?? ""})`
-          : `packaged in v${v.fix_release.version} — ${v.fix_release.status}${v.fix_release.store_eta ? ", in stores ~" + v.fix_release.store_eta : ""}`)
+          ? `shipped in v${v.fix_release.version}${v.fix_release.released_at ? " (released " + v.fix_release.released_at + ")" : ""}`
+          : `packaged in v${v.fix_release.version} — ${v.fix_release.status.replace("_", " ")}${v.fix_release.store_eta ? ", in stores ~" + v.fix_release.store_eta : ""}`)
       : "not in a tagged release yet — goes out with the next one";
     evidence = `<div class="evidence"><span class="when">${esc(v.fix_commit.date.slice(0, 10))}</span> —
       “${esc(v.fix_commit.subject)}” · ${esc(rel)}</div>`;
   }
 
-  const conf = v.confidence ? `<span class="confidence">match confidence ${(v.confidence * 100).toFixed(0)}%</span>` : "";
+  const conf = v.confidence ? `
+    <span class="confidence">match confidence ${(v.confidence * 100).toFixed(0)}%
+      <span class="confbar"><i style="width:${(v.confidence * 100).toFixed(0)}%"></i></span>
+    </span>` : "";
+
   let html = `
     <div class="card">
       <h3>Verdict</h3>
@@ -262,13 +360,16 @@ function renderResult(r, friendlyErr) {
       </div>
       <p class="why">${esc(v.reasoning)}</p>
       ${evidence}
-      ${r.error ? `<div class="error-box" style="margin-top:10px">${esc(friendlyErr ?? "Analysis could not finish — the item was kept and nothing was guessed.")}</div>` : ""}
+      ${r.error ? `<div class="error-box" style="margin-top:12px">${esc(friendlyErr ?? "Analysis could not finish — the item was kept and nothing was guessed.")}</div>` : ""}
     </div>`;
 
   if (r.reply_draft) {
+    const lang = r.intake ? r.intake.language : "en";
+    const langNote = lang && lang !== "en"
+      ? `<span class="lang-pill" title="Drafted in the reporter's language">${esc((LANG_NAME[lang] || lang).toUpperCase())}</span>` : "";
     html += `
     <div class="card">
-      <h3>Reply to send</h3>
+      <h3>Reply to send ${langNote}</h3>
       <textarea class="reply" id="reply-text">${esc(r.reply_draft)}</textarea>
       <div class="row">
         <button class="primary" onclick="copyText('reply-text', this)">Copy reply</button>
@@ -299,6 +400,13 @@ function copyText(id, btn) {
     setTimeout(() => (btn.textContent = old), 1500);
   });
 }
+
+document.getElementById("analyze-all").onclick = async function () {
+  this.disabled = true;
+  const pending = items.filter(i => !i.verdict).map(i => i.id);
+  for (const id of pending) await select(id);
+  this.disabled = false;
+};
 
 document.getElementById("new-btn").onclick = async () => {
   const ta = document.getElementById("new-text");

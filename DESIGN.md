@@ -85,8 +85,9 @@ flowchart LR
 ```
 
 Three LLM calls maximum per item (intake, adjudication, reply), each small and
-schema-enforced via the API's structured outputs (`chat.completions.parse` +
-Pydantic). Everything load-bearing is deterministic:
+schema-enforced at the API layer (the Responses API's `responses.parse` with a
+Pydantic model; `store=false` on every call — user feedback is support data and
+is not retained server-side). Everything load-bearing is deterministic:
 
 - **The model never says "fixed."** It only links a symptom to a commit, with
   calibrated confidence. Whether that commit reached this reporter is computed
@@ -125,34 +126,56 @@ flip the verdict because of the reporter's version. The runner reports accuracy,
 per-class precision/recall, and the headline: **false-"fixed" rate** over all
 fixed-claims, plus citation validity (structurally forced to 0).
 
-Two honest layers to the numbers:
+Two honest layers to the numbers, kept separable on purpose — when a number
+moves you want to know whether to look at the prompts or the plumbing:
 
-- **Harness logic (verified here):** `scripts/author_fixtures.py` plays the
+- **Harness logic (no model, no key):** `scripts/author_fixtures.py` plays the
   model's role with hand-written realistic outputs and runs the *real* pipeline
   around them: 25/25 cases produce the gold verdict, 0 false-fixed, 0 invalid
   citations, and every target commit is retrieved into the candidate set. This
   pins the deterministic 80% of the system — routing, retrieval, guardrails,
-  version arithmetic — and doubles as the replay fixtures for keyless demos.
-- **Live model (one command):** `LANDED_RECORD=1 python -m scripts.record_fixtures`
-  re-records every fixture against the live API, then `python -m harness.eval`
-  grades the end-to-end system. I kept these separable on purpose: when a live
-  number moves, you know whether to look at the prompts or the plumbing.
+  version arithmetic. Unit tests (`make test`) pin the same layer at finer
+  grain; both run keyless in CI.
+- **Live model, end to end:** `make record` runs every case against the live
+  API, grading as it goes and recording every response as a replay fixture —
+  so the keyless demo replays *real* model outputs, and `make eval-replay`
+  reproduces the graded run bit-for-bit.
+
+Live results (gpt-5.5, reasoning effort `medium` on adjudication, 2026-07-23):
+**25/25 verdicts, false-"fixed" 0/12, invalid citations 0**, per-class
+precision/recall 1.00 across all six verdict classes; ~10s median per item
+(4–21s, one slow outlier at 72s).
+
+The first live run also did exactly what an eval loop is for — it caught two
+real defects no authored test had hit:
+
+1. **A guardrail bug.** The model drafted "v1.1.0" (a *correct* version); the
+   allowlist regex, anchored on `\b`, couldn't start a match between `v` and
+   `1`, silently matched the inner `1.0`, and rejected a valid reply — costing
+   a pointless retry. Fixed by consuming the optional `v` prefix; pinned with a
+   regression unit test.
+2. **A semantic wobble.** On no-match cases the model returned
+   `match_sha: null, confidence: 0.9` — using confidence as "confidence in my
+   answer" while the prompt defines it as "confidence in the match". Harmless
+   (null short-circuits before any confidence gate) but incoherent data; one
+   clarifying prompt line, re-recorded, now every null match reports 0.0.
 
 ## 5. Tooling and tradeoffs
 
-- **GPT-5.5, structured outputs, reasoning effort tiered per stage.** The
+- **GPT-5.5 via the Responses API, reasoning effort tiered per stage.** The
   flagship for judgment quality on the call that matters — adjudication runs
   at `medium` reasoning effort (symptom↔fix discrimination is the one place
-  extra reasoning pays); intake and drafting run at `low` for latency. My
-  other projects already run on the OpenAI API, so keys and operational
-  familiarity were on hand; nothing in the design is provider-specific — the
-  model seam is one file (`harness/llm.py`), and the first commit shows the
-  same contract working against Claude's structured outputs. At real triage
-  volume I'd A/B `gpt-5.4-mini` on intake/drafting — the seam
-  (`OPENAI_MODEL`) exists — but I didn't want to tune two models in a
-  take-home. Structured outputs replace a hand-rolled parse-retry loop with
-  API-level schema enforcement; GPT-5 reasoning models don't accept sampling
-  parameters, so determinism comes from prompts + validation.
+  extra reasoning pays); intake and drafting run at `low` for latency.
+  `responses.parse` gives API-level schema enforcement instead of a hand-rolled
+  parse-retry loop, and `store=false` keeps user feedback out of provider
+  retention. My other projects already run on the OpenAI API, so keys and
+  operational familiarity were on hand; nothing in the design is
+  provider-specific — the model seam is one file (`harness/llm.py`), and the
+  first commit shows the same contract working against Claude's structured
+  outputs. At real triage volume I'd A/B `gpt-5.4-mini` on intake/drafting —
+  the seam (`OPENAI_MODEL`) exists — but I didn't want to tune two models in a
+  take-home. GPT-5 reasoning models don't accept sampling parameters, so
+  determinism comes from prompts + validation.
 - **BM25 + LLM query expansion over embeddings.** Right-sized for
   tens-to-thousands of commits, zero extra infra, inspectable failures. The
   cut line is real: at ~10k+ commits or multi-repo scope I'd add an embedding
@@ -174,12 +197,14 @@ Two honest layers to the numbers:
 **Time spent:** about a focused day, roughly half on the harness/evals and
 half on demo data, interface, and this write-up.
 
-**Next with more time:** (1) record live-model eval numbers across
-Opus/Sonnet and per-stage model splits, and grow the eval set from real
-(anonymized) feedback; (2) the release-manifest adapter for App Store
-Connect/Play Console so `fix_coming` ETAs are live truth; (3) close the loop —
-when support corrects a verdict, that correction becomes a labeled eval case;
-(4) "notify on landed": message the reporter when their fix actually ships.
+**Next with more time:** (1) grow the eval set from real (anonymized)
+feedback until the numbers stop being flattering — 25 cases is enough to
+catch harness bugs (it did), not enough to trust 25/25 as a ceiling — and A/B
+per-stage model splits (`gpt-5.4-mini` on intake/drafting); (2) the
+release-manifest adapter for App Store Connect/Play Console so `fix_coming`
+ETAs are live truth; (3) close the loop — when support corrects a verdict,
+that correction becomes a labeled eval case; (4) "notify on landed": message
+the reporter when their fix actually ships.
 
 **Least sure about:** retrieval recall on genuinely terse commit histories
 ("fix stuff") — query expansion can't rescue a corpus with no signal, and I'd
