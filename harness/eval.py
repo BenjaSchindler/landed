@@ -33,6 +33,8 @@ FIXED_CLAIMS = {"already_fixed", "fix_coming"}
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--strict", action="store_true",
+                        help="exit non-zero unless every graded case is correct and none skipped (CI)")
     args = parser.parse_args()
 
     repo = _ensure_demo_repo()
@@ -110,6 +112,8 @@ def main() -> None:
         "invalid_citations": bad_citations, "rows": rows,
     }, indent=1))
     print(f"\nwrote {out.relative_to(ROOT)}")
+    if args.strict and (correct < len(graded) or skipped):
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

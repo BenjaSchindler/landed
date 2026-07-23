@@ -1,0 +1,21 @@
+
+name: ci
+
+on: [push, pull_request]
+
+jobs:
+  keyless:
+    # Everything here runs without an API key: unit tests for the
+    # deterministic core, the harness-logic gate (hand-authored model outputs
+    # through the real pipeline), and a strict replay eval over the shipped
+    # recorded fixtures — exactly what a keyless reviewer gets.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python -m unittest discover -s tests -t .
+      - run: python -m scripts.author_fixtures
+      - run: LANDED_REPLAY=1 python -m harness.eval --strict
