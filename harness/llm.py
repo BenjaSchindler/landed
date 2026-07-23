@@ -1,13 +1,15 @@
-"""One thin seam between the pipeline and the model.
+"""One thin seam between the pipeline and the model (OpenAI GPT-5 family).
 
 Three modes:
-  live   — calls the Claude API (default when credentials resolve)
+  live   — calls the OpenAI API (default when OPENAI_API_KEY resolves)
   replay — serves recorded/authored fixtures; lets the whole demo run keyless
   record — live + writes every response to fixtures/ (LANDED_RECORD=1)
 
-Structured calls go through client.messages.parse() with a Pydantic model, so
-schema enforcement happens at the API layer, not in regex-land. Fixture keys
-hash the prompt content (not the model), so switching models re-records cleanly.
+Structured calls go through chat.completions.parse() with a Pydantic model, so
+schema enforcement happens at the API layer, not in regex-land. GPT-5 models
+are reasoning models: no temperature/top_p — behavior is steered by prompts
+plus a per-call reasoning effort. Fixture keys hash the prompt content (not
+the model), so switching models re-records cleanly.
 """
 from __future__ import annotations
 
@@ -20,7 +22,7 @@ from typing import Type, TypeVar
 from pydantic import BaseModel
 
 FIXTURES_DIR = Path(__file__).resolve().parent.parent / "fixtures" / "replay"
-DEFAULT_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-opus-4-8")
+DEFAULT_MODEL = os.environ.get("OPENAI_MODEL", "gpt-5.5")
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -52,18 +54,16 @@ class LLM:
         else:
             self.mode = "live" if self._try_client() else "replay"
         if self.mode == "live" and self.client is None and not self._try_client():
-            raise LLMUnavailable("live mode requested but no Anthropic credentials resolve")
+            raise LLMUnavailable("live mode requested but no OpenAI credentials resolve")
 
     def _try_client(self) -> bool:
-        # Anthropic() constructs fine without credentials and only fails at
-        # request time — so check that something actually resolved.
         try:
-            import anthropic
-            client = anthropic.Anthropic()
+            import openai
+            client = openai.OpenAI()  # raises OpenAIError when no api_key resolves
         except Exception:
             self.client = None
             return False
-        if getattr(client, "api_key", None) or getattr(client, "auth_token", None):
+        if getattr(client, "api_key", None):
             self.client = client
             return True
         self.client = None
@@ -72,45 +72,52 @@ class LLM:
     # ------------------------------------------------------------- calls
 
     def structured(self, name: str, system: str, user: str, model_cls: Type[T],
-                   max_tokens: int = 4096, thinking: bool = False) -> T:
+                   max_tokens: int = 4096, effort: str = "low") -> T:
         key = _key(name, system, user)
         if self.mode == "replay":
             return model_cls.model_validate(self._read_fixture(key, name))
 
-        import anthropic
-        kwargs: dict = dict(
-            model=DEFAULT_MODEL, max_tokens=max_tokens, system=system,
-            messages=[{"role": "user", "content": user}], output_format=model_cls,
-        )
-        if thinking:
-            kwargs["thinking"] = {"type": "adaptive"}
+        import openai
         try:
-            response = self.client.messages.parse(**kwargs)
-        except (anthropic.APIConnectionError, anthropic.APIStatusError, TypeError) as e:
+            completion = self.client.beta.chat.completions.parse(
+                model=DEFAULT_MODEL,
+                reasoning_effort=effort,
+                max_completion_tokens=max_tokens,  # includes reasoning tokens
+                messages=[{"role": "system", "content": system},
+                          {"role": "user", "content": user}],
+                response_format=model_cls,
+            )
+        except (openai.APIConnectionError, openai.APIStatusError) as e:
             raise LLMUnavailable(f"{name}: {type(e).__name__}") from e
-        if response.stop_reason == "refusal" or response.parsed_output is None:
-            raise LLMBadOutput(f"{name}: stop_reason={response.stop_reason}")
-        result: T = response.parsed_output
+        message = completion.choices[0].message
+        if getattr(message, "refusal", None) or message.parsed is None:
+            raise LLMBadOutput(f"{name}: refusal={getattr(message, 'refusal', None)!r}")
+        result: T = message.parsed
         if self.record:
             self._write_fixture(key, name, "structured", result.model_dump())
         return result
 
-    def text(self, name: str, system: str, user: str, max_tokens: int = 1024) -> str:
+    def text(self, name: str, system: str, user: str, max_tokens: int = 2048,
+             effort: str = "low") -> str:
         key = _key(name, system, user)
         if self.mode == "replay":
             return str(self._read_fixture(key, name))
 
-        import anthropic
+        import openai
         try:
-            response = self.client.messages.create(
-                model=DEFAULT_MODEL, max_tokens=max_tokens, system=system,
-                messages=[{"role": "user", "content": user}],
+            completion = self.client.chat.completions.create(
+                model=DEFAULT_MODEL,
+                reasoning_effort=effort,
+                max_completion_tokens=max_tokens,
+                messages=[{"role": "system", "content": system},
+                          {"role": "user", "content": user}],
             )
-        except (anthropic.APIConnectionError, anthropic.APIStatusError, TypeError) as e:
+        except (openai.APIConnectionError, openai.APIStatusError) as e:
             raise LLMUnavailable(f"{name}: {type(e).__name__}") from e
-        if response.stop_reason == "refusal" or not response.content:
-            raise LLMBadOutput(f"{name}: stop_reason={response.stop_reason}")
-        out = "".join(b.text for b in response.content if b.type == "text").strip()
+        message = completion.choices[0].message
+        if getattr(message, "refusal", None) or not message.content:
+            raise LLMBadOutput(f"{name}: refusal={getattr(message, 'refusal', None)!r}")
+        out = message.content.strip()
         if self.record:
             self._write_fixture(key, name, "text", out)
         return out
@@ -122,7 +129,7 @@ class LLM:
         if not path.exists():
             raise ReplayMiss(
                 f"no fixture for call '{name}' (key {key}). "
-                "Run with ANTHROPIC_API_KEY set, or LANDED_RECORD=1 to create it."
+                "Run with OPENAI_API_KEY set, or LANDED_RECORD=1 to create it."
             )
         return json.loads(path.read_text())["output"]
 

@@ -88,7 +88,7 @@ def main() -> None:
 
     graded = [r for r in rows]
     if not graded:
-        print("\nNo cases graded (all skipped). Set ANTHROPIC_API_KEY and re-run.")
+        print("\nNo cases graded (all skipped). Set OPENAI_API_KEY and re-run.")
         return
 
     correct = sum(1 for r in graded if r["ok"] and r["version_ok"])

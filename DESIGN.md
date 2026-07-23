@@ -85,8 +85,8 @@ flowchart LR
 ```
 
 Three LLM calls maximum per item (intake, adjudication, reply), each small and
-schema-enforced via the API's structured outputs (`messages.parse` + Pydantic).
-Everything load-bearing is deterministic:
+schema-enforced via the API's structured outputs (`chat.completions.parse` +
+Pydantic). Everything load-bearing is deterministic:
 
 - **The model never says "fixed."** It only links a symptom to a commit, with
   calibrated confidence. Whether that commit reached this reporter is computed
@@ -140,14 +140,19 @@ Two honest layers to the numbers:
 
 ## 5. Tooling and tradeoffs
 
-- **Claude Opus 4.8, structured outputs, adaptive thinking on adjudication
-  only.** Opus for judgment quality on the call that matters (symptom↔fix
-  discrimination); intake and drafting run without thinking for latency. At
-  real triage volume I'd A/B Sonnet on intake/drafting — the seam
-  (`ANTHROPIC_MODEL`) exists — but I didn't want to tune two models in a
+- **GPT-5.5, structured outputs, reasoning effort tiered per stage.** The
+  flagship for judgment quality on the call that matters — adjudication runs
+  at `medium` reasoning effort (symptom↔fix discrimination is the one place
+  extra reasoning pays); intake and drafting run at `low` for latency. My
+  other projects already run on the OpenAI API, so keys and operational
+  familiarity were on hand; nothing in the design is provider-specific — the
+  model seam is one file (`harness/llm.py`), and the first commit shows the
+  same contract working against Claude's structured outputs. At real triage
+  volume I'd A/B `gpt-5.4-mini` on intake/drafting — the seam
+  (`OPENAI_MODEL`) exists — but I didn't want to tune two models in a
   take-home. Structured outputs replace a hand-rolled parse-retry loop with
-  API-level schema enforcement; temperature isn't part of the current API
-  surface, so determinism comes from prompts + validation.
+  API-level schema enforcement; GPT-5 reasoning models don't accept sampling
+  parameters, so determinism comes from prompts + validation.
 - **BM25 + LLM query expansion over embeddings.** Right-sized for
   tens-to-thousands of commits, zero extra infra, inspectable failures. The
   cut line is real: at ~10k+ commits or multi-repo scope I'd add an embedding

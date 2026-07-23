@@ -1,8 +1,8 @@
-"""Re-record all replay fixtures against the live Claude API.
+"""Re-record all replay fixtures against the live OpenAI API.
 
 Runs every eval case through the pipeline with LANDED_RECORD=1, overwriting the
 hand-authored fixtures with real model outputs (same keys, same files). Run
-this once with ANTHROPIC_API_KEY set, then `python -m harness.eval` to grade
+this once with OPENAI_API_KEY set, then `python -m harness.eval` to grade
 the live model.
 """
 from __future__ import annotations
@@ -29,7 +29,7 @@ def main() -> None:
     index = RepoIndex(repo, ROOT / "demo" / "releases.json")
     llm = LLM()
     if llm.mode != "live":
-        sys.exit("No Anthropic credentials resolve — export ANTHROPIC_API_KEY first.")
+        sys.exit("No OpenAI credentials resolve — export OPENAI_API_KEY first.")
     pipeline = Pipeline(index, llm)
 
     cases = [json.loads(l) for l in (ROOT / "evals" / "cases.jsonl").read_text().splitlines() if l.strip()]

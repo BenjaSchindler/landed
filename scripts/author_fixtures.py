@@ -10,7 +10,7 @@ So it is two things at once:
   2. a logic test for everything in the harness that is not the model
 
 `LANDED_RECORD=1 python -m scripts.record_fixtures` later replaces these
-hand-authored outputs with real Claude responses — same keys, same files.
+hand-authored outputs with real model responses — same keys, same files.
 """
 from __future__ import annotations
 

@@ -35,13 +35,13 @@ authors, so commit shas — and therefore fixtures — are stable across machine
 ## Live mode
 
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...        # any key with claude-opus-4-8 access
+export OPENAI_API_KEY=sk-...               # any key with gpt-5.5 access
 .venv/bin/uvicorn harness.server:app --port 8712
 ```
 
 With credentials resolving, the pipeline calls the model for real — including
-for feedback you paste yourself. `ANTHROPIC_MODEL` overrides the default model
-(`claude-opus-4-8`).
+for feedback you paste yourself. `OPENAI_MODEL` overrides the default model
+(`gpt-5.5`).
 
 To replace the hand-authored fixtures with real recorded model outputs:
 

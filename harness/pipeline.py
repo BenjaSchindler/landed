@@ -126,14 +126,14 @@ class Pipeline:
     def _adjudicate(self, intake: IntakeResult, candidates: list[Candidate]) -> Adjudication:
         system, user = adjudicate_prompt(intake, candidates)
         adj = self.llm.structured("adjudicate", system, user, Adjudication,
-                                  max_tokens=16000, thinking=True)
+                                  max_tokens=16000, effort="medium")
         if adj.match_sha is not None and not self._sha_in(adj.match_sha, candidates):
             # one corrective retry, then discard the invalid citation
             retry_user = user + ("\n\nYour previous answer cited a sha that is not in the "
                                  "candidate list. Answer again: copy a sha exactly from a "
                                  "candidate above, or use null.")
             adj = self.llm.structured("adjudicate_retry", system, retry_user, Adjudication,
-                                      max_tokens=16000, thinking=True)
+                                      max_tokens=16000, effort="medium")
             if adj.match_sha is not None and not self._sha_in(adj.match_sha, candidates):
                 adj = Adjudication(match_sha=None, confidence=0.0,
                                    reasoning="Automatic matching produced an invalid citation and was discarded.",
