@@ -1,7 +1,7 @@
 {
  "name": "reply",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
- "output": "¡Qué pena lo de tu racha de 40 días — y gracias por contarnos! 😭 Encontramos la causa: al completar un hábito tarde en la noche, el día se calculaba mal. Ya está corregido y el arreglo llega en la versión 1.2.0, que está en revisión de la tienda (aprox. 2026-07-28). — The Ritmo team"
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "¡Qué rabia perder una racha de 40 días 😭! Estás en la versión 1.1.0 y esto coincide con un problema ya corregido: las rachas se estaban contando por medianoche UTC en vez de por tu medianoche local, así que hábitos completados tarde podían quedar en el día incorrecto.\n\nLa corrección está en la versión 1.2.0, que ahora mismo está en revisión. La fecha estimada en la tienda es 2026-07-28. Cuando esté disponible, actualiza para que las rachas se cuenten correctamente por tu horario local.\n\n— The Ritmo team"
 }

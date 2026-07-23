@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "match_sha": "d0ba5d138bac8b8f87d5a3ad7da207b94e94bf99",
+  "confidence": 0.98,
+  "reasoning": "This change specifically saves in-progress exercise answers when the app is sent to the background and restores them when the user returns. That directly matches the report that answers are erased after switching to another app for a while.",
+  "symptom_addressed": "Exercise answers are lost after switching to another app for a while."
+ }
+}

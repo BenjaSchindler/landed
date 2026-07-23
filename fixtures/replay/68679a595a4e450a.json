@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "match_sha": "8171f42045855e31f6542e5f20dd4eb0a082ccb9",
+  "confidence": 0.98,
+  "reasoning": "This change specifically cancels any existing scheduled reminder before scheduling a new one, preventing the same daily reminder from being queued multiple times. Its description directly says users were receiving the same daily reminder two or more times.",
+  "symptom_addressed": "The same daily reminder notification is delivered twice every morning, about one minute apart."
+ }
+}

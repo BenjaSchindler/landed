@@ -1,13 +1,13 @@
 {
  "name": "intake",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
  "output": {
   "kind": "bug",
-  "summary": "Typed exercise answers are lost when switching briefly to another app",
+  "summary": "Typed exercise input is lost after switching to WhatsApp and returning on Android.",
   "symptoms": [
-   "in-progress exercise answers are lost when the app goes to background"
+   "Everything typed in an exercise is lost when the user switches to WhatsApp briefly and returns to the app."
   ],
   "app_version": "1.0.0",
   "platform": "android",
@@ -16,13 +16,23 @@
   "missing_info": [],
   "search_terms": {
    "user_terms": [
-    "lose everything I typed"
+    "lose everything I typed",
+    "exercise",
+    "switch to WhatsApp",
+    "come back",
+    "Android"
    ],
    "dev_terms": [
-    "persist answers",
+    "persist exercise input",
+    "save draft",
+    "restore input",
     "background",
-    "exercise runner",
-    "restore state"
+    "foreground",
+    "AppState",
+    "activity pause",
+    "activity resume",
+    "state restoration",
+    "Android lifecycle"
    ]
   }
  }

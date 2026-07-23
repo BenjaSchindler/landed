@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "match_sha": "d1245230f580e3ff59fd93d127efceebc984eb98",
+  "confidence": 0.98,
+  "reasoning": "This change specifically fixes the breathing timer restarting after the user switches apps and returns. It changes the timer to resume from its original start time instead of resetting when the app regains focus.",
+  "symptom_addressed": "The breathing timer resets after the user leaves the app to reply to a message and comes back."
+ }
+}

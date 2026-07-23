@@ -1,26 +1,31 @@
 {
  "name": "intake",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
  "output": {
   "kind": "bug",
-  "summary": "Unspecified crashes",
-  "symptoms": [],
+  "summary": "The app crashes sometimes.",
+  "symptoms": [
+   "The app crashes intermittently."
+  ],
   "app_version": null,
   "platform": "unknown",
   "language": "en",
   "specific_enough": false,
   "missing_info": [
-   "What are you doing in the app when it crashes?",
-   "Which app version are you on? You can see it in Settings > About."
+   "Which app version are you using?",
+   "What were you doing right before the crash, and does it happen on a specific screen or action?",
+   "What device and operating system version are you using?"
   ],
   "search_terms": {
    "user_terms": [
-    "crashes"
+    "crashes sometimes"
    ],
    "dev_terms": [
-    "crash"
+    "crash",
+    "intermittent crash",
+    "stability"
    ]
   }
  }

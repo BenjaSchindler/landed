@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "match_sha": "8171f42045855e31f6542e5f20dd4eb0a082ccb9",
+  "confidence": 0.98,
+  "reasoning": "This change specifically fixes duplicate daily reminders by canceling already scheduled reminders before scheduling a new one. That directly matches the user receiving two identical reminder notifications every morning.",
+  "symptom_addressed": "Two identical reminder notifications are delivered every morning about a minute apart."
+ }
+}

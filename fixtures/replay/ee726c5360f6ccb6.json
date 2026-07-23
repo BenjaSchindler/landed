@@ -1,13 +1,14 @@
 {
  "name": "intake",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
  "output": {
   "kind": "bug",
-  "summary": "Phone hot and battery drained since leaving the app open overnight",
+  "summary": "After update 1.1.0, leaving Ritmo open overnight makes the phone hot and drains the battery by 6pm on Samsung/Android.",
   "symptoms": [
-   "high battery drain and device heat when the app stays open overnight"
+   "Phone becomes hot when Ritmo is left open overnight",
+   "Battery is drained by 6pm after leaving Ritmo open overnight"
   ],
   "app_version": "1.1.0",
   "platform": "android",
@@ -16,14 +17,26 @@
   "missing_info": [],
   "search_terms": {
    "user_terms": [
-    "phone hot battery gone"
+    "TERRIBLE update",
+    "phone is HOT",
+    "battery is GONE by 6pm",
+    "leaving ritmo open overnight",
+    "1.1.0",
+    "samsung"
    ],
    "dev_terms": [
-    "battery",
-    "drain",
+    "battery drain",
+    "overheating",
+    "thermal",
+    "background",
     "overnight",
     "wakelock",
-    "background"
+    "background task",
+    "foreground service",
+    "power usage",
+    "CPU usage",
+    "Android",
+    "Samsung"
    ]
   }
  }

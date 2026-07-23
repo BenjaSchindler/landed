@@ -1,0 +1,7 @@
+{
+ "name": "reply",
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Thanks for flagging this. The fix to persist in-progress exercise answers when the app is backgrounded was released in 1.1.0, so seeing it again on 1.2.0 beta looks like a regression. We’ll treat it as such and investigate against the beta build.\n\nFor now, the safest workaround is to avoid switching apps while mid-exercise if you can, especially before submitting or completing an answer.\n\n— The Ritmo team"
+}

@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "match_sha": "d0ba5d138bac8b8f87d5a3ad7da207b94e94bf99",
+  "confidence": 0.98,
+  "reasoning": "This change specifically saves in-progress exercise answers when the app is backgrounded and restores them on resume. Its description directly mentions phone calls causing written answers to be dropped, which matches the report.",
+  "symptom_addressed": "Reflections typed in an exercise are deleted after a phone call arrives."
+ }
+}

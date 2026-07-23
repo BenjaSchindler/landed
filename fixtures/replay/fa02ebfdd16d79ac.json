@@ -1,31 +1,38 @@
 {
  "name": "intake",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
  "output": {
   "kind": "bug",
-  "summary": "The same daily reminder notification arrives twice each morning",
+  "summary": "User receives the same daily reminder notification twice every morning about a minute apart.",
   "symptoms": [
-   "duplicate daily reminder notifications, about a minute apart"
+   "The same daily reminder notification is delivered twice every morning.",
+   "The duplicate notifications arrive about one minute apart."
   ],
   "app_version": null,
   "platform": "unknown",
   "language": "en",
   "specific_enough": true,
   "missing_info": [
-   "Which app version are you on? You can see it in Settings > About."
+   "Which app version are you using?"
   ],
   "search_terms": {
    "user_terms": [
-    "same reminder twice"
+    "same daily reminder notification twice",
+    "twice every morning",
+    "about a minute apart",
+    "turn notifications off"
    ],
    "dev_terms": [
-    "notification",
-    "duplicate",
-    "reminder",
-    "schedule",
-    "cancel"
+    "duplicate notification",
+    "daily reminder",
+    "scheduled notification",
+    "push notification",
+    "local notification",
+    "notification deduplication",
+    "cancel existing notification",
+    "reschedule reminder"
    ]
   }
  }

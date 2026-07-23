@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "match_sha": "3aa55c3b19d5cea575322a603969b106460a49ff",
+  "confidence": 0.96,
+  "reasoning": "This change specifically fixed streaks being calculated using UTC instead of the device’s local midnight. That directly matches a late-night habit completion causing the next day’s streak to reset to 0.",
+  "symptom_addressed": "A 40-day streak reset to 0 after completing the habit around 11:30 PM the previous night."
+ }
+}

@@ -1,13 +1,14 @@
 {
  "name": "intake",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
  "output": {
   "kind": "bug",
-  "summary": "App crashes when uploading a profile photo from the gallery",
+  "summary": "The app crashes when the user selects a profile photo from the gallery.",
   "symptoms": [
-   "app closes immediately when picking a profile photo from the gallery"
+   "App crashes when attempting to upload a profile photo.",
+   "After choosing a photo from the gallery, the app closes immediately."
   ],
   "app_version": "1.0.0",
   "platform": "android",
@@ -16,15 +17,21 @@
   "missing_info": [],
   "search_terms": {
    "user_terms": [
-    "se cae al subir foto"
+    "se cae",
+    "subir foto de perfil",
+    "galería",
+    "se cierra al tiro",
+    "Samsung Galaxy A54",
+    "versión 1.0.0"
    ],
    "dev_terms": [
     "crash",
-    "avatar",
-    "upload",
-    "photo",
-    "gallery",
-    "permission"
+    "profile photo upload",
+    "gallery picker",
+    "image selection",
+    "avatar upload",
+    "Android",
+    "Samsung Galaxy A54"
    ]
   }
  }

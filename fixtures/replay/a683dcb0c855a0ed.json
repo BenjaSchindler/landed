@@ -1,11 +1,11 @@
 {
  "name": "intake",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
  "output": {
   "kind": "question",
-  "summary": "How to export or back up personal data",
+  "summary": "User asks how to export their data to keep a backup of their history.",
   "symptoms": [],
   "app_version": null,
   "platform": "unknown",
@@ -14,11 +14,15 @@
   "missing_info": [],
   "search_terms": {
    "user_terms": [
-    "export data backup"
+    "export my data",
+    "backup of my history",
+    "keep a backup"
    ],
    "dev_terms": [
-    "export",
-    "backup"
+    "export data",
+    "data backup",
+    "history export",
+    "backup history"
    ]
   }
  }

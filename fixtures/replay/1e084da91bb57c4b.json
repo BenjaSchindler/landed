@@ -1,7 +1,7 @@
 {
  "name": "reply",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
- "output": "Qué rabia, tienes toda la razón — y en tu versión esto ya no debería pasar, así que lo estamos revisando con prioridad. Tu reporte ya está con el equipo y te contactamos apenas tengamos novedades. — The Ritmo team"
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Hola, qué rabia perder lo escrito así. Gracias por contarnos y por indicar que usas la 1.2.0.\n\nEsto corresponde a una regresión: el problema era que las respuestas en progreso no se conservaban al mandar la app a segundo plano, por ejemplo al recibir una llamada. Ya hay una corrección publicada para persistir esas respuestas mientras el ejercicio está en curso.\n\nSi te vuelve a pasar en 1.2.0, por favor escríbenos de nuevo con el ejercicio en el que ocurrió para revisarlo.\n\n— The Ritmo team"
 }

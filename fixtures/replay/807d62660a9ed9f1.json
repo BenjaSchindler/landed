@@ -1,0 +1,7 @@
+{
+ "name": "reply",
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Gracias por avisarnos. Esto ya fue corregido: ahora las respuestas en progreso del ejercicio se guardan cuando la app queda en segundo plano. La corrección está disponible desde la versión 1.1.0.\n\n¿Puedes mirar qué versión tienes instalada en Settings > About? Si es anterior a 1.1.0, actualiza desde la tienda y debería dejar de ocurrir. Si ya estás en 1.1.0, dime también en qué dispositivo/sistema te pasa y en qué ejercicio o tipo de ejercicio.\n\n— The Ritmo team"
+}

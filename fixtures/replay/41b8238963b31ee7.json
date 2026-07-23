@@ -1,0 +1,7 @@
+{
+ "name": "reply",
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Thanks for the clear report, and for using Ritmo every day. This issue was fixed in version 1.1.0: in-progress exercise answers are now saved when the app is backgrounded, such as during a phone call.\n\nYou’re on 1.0.1, so please update Ritmo to the latest released version from the store. After updating, your answers should still be there when you return to an exercise after a call.\n\n— The Ritmo team"
+}

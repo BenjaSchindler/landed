@@ -1,7 +1,7 @@
 {
  "name": "reply",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
- "output": "¡Qué buena idea, gracias por proponerla! 🙏 Poder llevar tu historial a tu psicóloga es justo el tipo de uso que queremos apoyar. La anotamos para el equipo de producto — no podemos prometer fecha, pero quedó registrada. Gracias por estos meses usando Ritmo. — The Ritmo team"
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "¡Gracias por escribirnos y por usar Ritmo desde hace meses! 🙏 Nos alegra mucho saber que la app te está acompañando. La exportación del historial a PDF para compartirlo con tu psicóloga es una idea muy clara y útil; la dejaremos registrada como sugerencia de mejora. Por ahora no podemos prometer disponibilidad ni fecha, pero entendemos perfectamente el caso de uso.\n\n— The Ritmo team"
 }

@@ -1,0 +1,35 @@
+{
+ "name": "intake",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "kind": "bug",
+  "summary": "Exercise answers are lost after switching to another app briefly in the 1.2.0 beta.",
+  "symptoms": [
+   "Exercise answers are lost when the user switches to another app for a moment."
+  ],
+  "app_version": "1.2.0",
+  "platform": "ios",
+  "language": "en",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "losing my exercise answers",
+    "switch to another app",
+    "fixed already",
+    "1.2.0 beta"
+   ],
+   "dev_terms": [
+    "persist exercise answers",
+    "save answers on background",
+    "restore answers on foreground",
+    "AppState background",
+    "app switch state loss",
+    "preserve form state",
+    "autosave exercise progress"
+   ]
+  }
+ }
+}

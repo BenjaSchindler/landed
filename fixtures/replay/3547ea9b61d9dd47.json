@@ -1,13 +1,15 @@
 {
  "name": "intake",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
  "output": {
   "kind": "bug",
-  "summary": "A 40-day streak reset to zero after completing the habit late at night",
+  "summary": "User lost a 40-day streak after completing a habit around 11:30 PM; today the streak shows 0.",
   "symptoms": [
-   "streak resets to zero when a habit is completed late at night"
+   "A 40-day streak reset to 0.",
+   "The user completed the habit around 11:30 PM the previous night.",
+   "The next day the app displayed the streak as 0."
   ],
   "app_version": "1.1.0",
   "platform": "unknown",
@@ -17,15 +19,22 @@
   "search_terms": {
    "user_terms": [
     "perdí mi racha",
-    "completé en la noche"
+    "racha de 40 días",
+    "completé mi hábito",
+    "11 y media de la noche",
+    "hoy aparece racha 0",
+    "versión 1.1.0"
    ],
    "dev_terms": [
-    "streak",
-    "reset",
-    "midnight",
+    "streak reset",
+    "habit completion",
+    "late night completion",
+    "date boundary",
+    "midnight rollover",
     "timezone",
-    "day boundary",
-    "UTC"
+    "daily streak calculation",
+    "streak persistence",
+    "streak restore"
    ]
   }
  }

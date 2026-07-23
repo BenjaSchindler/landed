@@ -1,14 +1,15 @@
 {
  "name": "intake",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
  "output": {
   "kind": "bug",
-  "summary": "Phone runs warm and battery drains overnight, app shown as top consumer",
+  "summary": "Ritmo is consuming excessive battery and causing the phone to get warm overnight on Pixel 7.",
   "symptoms": [
-   "high battery drain overnight attributed to the app",
-   "device runs warm"
+   "Phone gets warm over the last few days.",
+   "Battery drains significantly overnight.",
+   "Ritmo appears as the top consumer in battery settings."
   ],
   "app_version": "1.1.0",
   "platform": "android",
@@ -17,16 +18,23 @@
   "missing_info": [],
   "search_terms": {
    "user_terms": [
+    "phone gets warm",
     "battery drains overnight",
-    "phone warm"
+    "top consumer in battery settings",
+    "Pixel 7",
+    "Ritmo battery drain"
    ],
    "dev_terms": [
-    "battery",
-    "drain",
+    "battery drain",
+    "excessive battery usage",
+    "background battery",
+    "overnight drain",
+    "wake lock",
     "background task",
-    "wakelock",
-    "power",
-    "overnight"
+    "foreground service",
+    "power consumption",
+    "thermal",
+    "Android battery usage"
    ]
   }
  }

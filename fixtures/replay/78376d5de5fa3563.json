@@ -1,7 +1,7 @@
 {
  "name": "reply",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
- "output": "¡Gracias por el detalle! Tienes razón y aún no está corregido, así que pasamos tu reporte al equipo con los datos de tu dispositivo. Te avisamos cuando salga el arreglo. — The Ritmo team"
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Gracias por avisarnos y por incluir el modelo y la versión. Vemos que en iPhone SE, usando Ritmo v1.1.0, el número de la racha se superpone con el título superior y dificulta la lectura. Lo tenemos registrado como un problema pendiente de corregir.\n\nNo necesitamos más datos por ahora; tu reporte ya incluye la información clave para revisarlo. Gracias por tomarte el tiempo de señalarlo.\n\n— The Ritmo team"
 }

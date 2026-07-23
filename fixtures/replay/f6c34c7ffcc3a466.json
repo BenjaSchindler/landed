@@ -1,7 +1,7 @@
 {
  "name": "reply",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
- "output": "Thanks for flagging this — you're right, that's the opposite of calming. We found and fixed exactly this: the timer now picks up where it left off when you return. The fix is packaged in version 1.2.0, which is in store review and should reach you around 2026-07-28. No action needed on your side. — The Ritmo team"
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Thanks for the clear report — and sorry, that really does interrupt the calm. This is a known timer issue in version 1.1.0, and we’ve already fixed it: the breathing timer will no longer restart after switching apps.\n\nThe fix is included in version 1.2.0, which is currently in review. It’s expected to be available in the store by 2026-07-28. Once it’s out, updating should resolve this for your iPhone 14.\n\n— The Ritmo team"
 }

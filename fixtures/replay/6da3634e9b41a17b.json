@@ -1,0 +1,38 @@
+{
+ "name": "intake",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "kind": "bug",
+  "summary": "Exercise answers are lost after an incoming phone call interrupts the app on Android.",
+  "symptoms": [
+   "When a phone call comes in halfway through an exercise, previously answered exercise items are gone after returning to the app.",
+   "The issue has happened three times."
+  ],
+  "app_version": "1.0.1",
+  "platform": "android",
+  "language": "en",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "phone call comes in halfway through an exercise",
+    "everything I had answered is gone when I come back",
+    "happened three times",
+    "Xiaomi Android"
+   ],
+   "dev_terms": [
+    "persist exercise answers",
+    "save exercise progress",
+    "restore exercise state",
+    "background interruption",
+    "phone call interruption",
+    "Android lifecycle",
+    "AppState",
+    "activity pause resume",
+    "state restoration"
+   ]
+  }
+ }
+}

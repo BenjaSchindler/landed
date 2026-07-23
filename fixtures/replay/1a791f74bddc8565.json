@@ -1,0 +1,7 @@
+{
+ "name": "reply",
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Thanks for reporting this. To help us narrow it down, could you send us a few details?\n\n1. Which app version are you using? You can find it in Settings > About.  \n2. What were you doing right before the crash? Does it happen on a specific screen or after a specific action?  \n3. What device and operating system version are you using?\n\n— The Ritmo team"
+}

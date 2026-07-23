@@ -1,7 +1,0 @@
-{
- "name": "reply",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
- "output": "Thanks for writing in — we'd love to track this down. Two quick questions: what are you doing in the app when it crashes, and which version are you on (Settings > About)? With that we can usually find the cause fast. — The Ritmo team"
-}

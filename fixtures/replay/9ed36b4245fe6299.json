@@ -1,7 +1,7 @@
 {
  "name": "reply",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
- "output": "¡Gracias por contarnos! Ya encontramos y corregimos este problema del temporizador. El arreglo viene en la versión 1.2.0, que está en revisión de la tienda y debería llegarte alrededor del 2026-07-28. No necesitas hacer nada. — The Ritmo team"
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Gracias por avisarnos. En la versión 1.0.1, al cambiar de app y volver, el temporizador de respiración puede reiniciarse como describes. Ya tenemos una corrección preparada: el temporizador de respiración no se reiniciará después de cambiar entre apps.\n\nLa corrección está incluida en la versión 1.2.0, que está actualmente en revisión. La estimación para que esté disponible en la tienda es el 2026-07-28.\n\n— The Ritmo team"
 }

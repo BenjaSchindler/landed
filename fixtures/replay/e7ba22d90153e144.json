@@ -1,13 +1,15 @@
 {
  "name": "intake",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
  "output": {
   "kind": "bug",
-  "summary": "Stats screen takes several seconds of blank screen to open with a year of data",
+  "summary": "Stats screen is slow to open and shows a blank screen for 4–5 seconds for a user with lots of data.",
   "symptoms": [
-   "stats screen takes 4-5 seconds to open for accounts with a lot of history"
+   "Stats screen takes 4–5 seconds to open.",
+   "A blank screen is shown while the stats screen is opening.",
+   "User has a lot of data accumulated over more than a year of use."
   ],
   "app_version": "1.1.0",
   "platform": "ios",
@@ -16,15 +18,21 @@
   "missing_info": [],
   "search_terms": {
    "user_terms": [
-    "stats screen takes forever"
+    "stats screen takes forever to open",
+    "4-5 seconds of blank screen",
+    "lot of data",
+    "Version 1.1.0",
+    "iPhone 13"
    ],
    "dev_terms": [
-    "stats",
-    "slow",
-    "performance",
-    "charts",
-    "memoize",
-    "history"
+    "optimize stats screen load time",
+    "fix blank screen while loading stats",
+    "improve stats performance with large data set",
+    "add loading state for stats screen",
+    "stats query performance",
+    "pagination",
+    "memoize stats calculations",
+    "cache stats data"
    ]
   }
  }

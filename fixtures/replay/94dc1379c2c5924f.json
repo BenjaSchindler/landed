@@ -1,0 +1,34 @@
+{
+ "name": "intake",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "kind": "feature_request",
+  "summary": "User requests a tablet layout because the app appears stretched on iPad.",
+  "symptoms": [
+   "Everything looks stretched out on iPad"
+  ],
+  "app_version": null,
+  "platform": "ios",
+  "language": "en",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "tablet layout",
+    "stretched out",
+    "iPad"
+   ],
+   "dev_terms": [
+    "tablet layout",
+    "iPad layout",
+    "responsive layout",
+    "adaptive UI",
+    "split view",
+    "size classes",
+    "tablet support"
+   ]
+  }
+ }
+}

@@ -1,7 +1,7 @@
 {
  "name": "reply",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
- "output": "Thanks for reporting this — with a year of entries you hit exactly the case we just fixed: the stats screen was recomputing everything each time it opened. The fix is already done and ships with the next update. Nothing to do on your side; your data is untouched. — The Ritmo team"
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Thanks for the details — that matches a known issue: the stats page can be slow to open when there’s around a year of history. We’ve prepared a fix for this, specifically for the stats page taking too long to open with lots of data.\n\nYou’re on version 1.1.0, so no extra details needed from you right now. Please keep an eye out for the next app update.\n\n— The Ritmo team"
 }

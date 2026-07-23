@@ -1,7 +1,7 @@
 {
  "name": "reply",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
- "output": "Thanks for catching that — small-screen layouts are easy to miss and this one slipped through. It isn't fixed yet, so we've filed it with the team with your device details attached. We'll let you know when a fix ships. — The Ritmo team"
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Thanks for the heads-up, and for including v1.1.0. The streak counter overlapping the header text on iPhone SE is not fixed yet. We’ve noted that it makes the number hard to read on that screen size.\n\nNo extra info needed from you right now. Thanks for flagging this small layout issue—it helps us catch problems that are easy to miss on compact devices.\n\n— The Ritmo team"
 }

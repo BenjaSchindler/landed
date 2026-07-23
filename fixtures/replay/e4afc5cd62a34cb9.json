@@ -1,0 +1,40 @@
+{
+ "name": "intake",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "kind": "bug",
+  "summary": "User receives two identical reminder notifications every morning about a minute apart.",
+  "symptoms": [
+   "Two identical reminder notifications are delivered every morning.",
+   "The duplicate notifications arrive about one minute apart."
+  ],
+  "app_version": "1.0.1",
+  "platform": "android",
+  "language": "en",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "two identical reminder notifications",
+    "every morning",
+    "about a minute apart",
+    "version 1.0.1",
+    "Motorola"
+   ],
+   "dev_terms": [
+    "duplicate reminder notifications",
+    "notification scheduling",
+    "local notifications",
+    "dedupe notifications",
+    "cancel existing notification",
+    "reschedule reminders",
+    "Android notification alarm",
+    "WorkManager",
+    "AlarmManager",
+    "reminder job"
+   ]
+  }
+ }
+}

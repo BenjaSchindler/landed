@@ -1,0 +1,36 @@
+{
+ "name": "intake",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "kind": "bug",
+  "summary": "Stats tab takes several seconds to open and shows a blank screen first.",
+  "symptoms": [
+   "Stats tab takes several seconds to open.",
+   "A blank screen is shown while the stats tab is opening."
+  ],
+  "app_version": "1.1.0",
+  "platform": "unknown",
+  "language": "en",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "stats tab takes really long to open",
+    "several seconds",
+    "blank screen",
+    "version 1.1.0"
+   ],
+   "dev_terms": [
+    "stats tab slow",
+    "stats screen performance",
+    "blank loading state",
+    "optimize stats load",
+    "stats tab startup latency",
+    "render stats screen",
+    "loading indicator"
+   ]
+  }
+ }
+}

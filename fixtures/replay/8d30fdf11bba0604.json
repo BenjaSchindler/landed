@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "match_sha": null,
+  "confidence": 0.0,
+  "reasoning": "None of the listed changes specifically fixes the Home screen streak number overlapping the title on small iPhones. The only small-screen padding fix is for onboarding, and the Home layout change is just an unreleased experiment without a clear link to this symptom.",
+  "symptom_addressed": null
+ }
+}

@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "match_sha": "513eaa96086b22b9df576dbd0a2ca8f9b4ecd3c0",
+  "confidence": 0.98,
+  "reasoning": "This change specifically fixes an Android crash when picking/uploading a profile avatar from the gallery by requesting the required Android 13+ image permission.",
+  "symptom_addressed": "App crashes after choosing a profile photo from the gallery."
+ }
+}

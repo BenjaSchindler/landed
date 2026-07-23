@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "match_sha": null,
+  "confidence": 0.0,
+  "reasoning": "None of the listed changes address overheating or battery drain from leaving the app open overnight. The candidates are about state persistence, duplicate notifications, stats performance, streak timezone logic, avatar upload crashes, or timer restart behavior, which do not directly match this symptom.",
+  "symptom_addressed": null
+ }
+}

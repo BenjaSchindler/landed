@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "match_sha": "d1245230f580e3ff59fd93d127efceebc984eb98",
+  "confidence": 0.88,
+  "reasoning": "This change fixes the breathing timer resetting to zero when the app regains focus after an interruption. An alarm can cause the same focus/background interruption, so it directly addresses the reported timer restart during a session.",
+  "symptom_addressed": "Breathing session timer restarts from the beginning after an alarm interruption."
+ }
+}

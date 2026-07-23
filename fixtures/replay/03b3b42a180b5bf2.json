@@ -1,13 +1,13 @@
 {
  "name": "intake",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
  "output": {
   "kind": "bug",
-  "summary": "Breathing timer restarts from zero when the user briefly switches apps",
+  "summary": "Breathing timer restarts from zero when the user checks a text mid-session.",
   "symptoms": [
-   "breathing timer resets to zero after switching to another app and back"
+   "Breathing timer resets to zero after the user switches away to check a text during a session."
   ],
   "app_version": "1.1.0",
   "platform": "ios",
@@ -16,17 +16,20 @@
   "missing_info": [],
   "search_terms": {
    "user_terms": [
-    "timer restarts",
-    "check a text"
+    "breathing timer restarts from zero",
+    "check a text mid-session",
+    "iphone 14",
+    "app version 1.1.0"
    ],
    "dev_terms": [
-    "timer",
-    "restart",
-    "reset",
-    "focus",
-    "resume",
-    "background",
-    "breathing session"
+    "persist timer state",
+    "background app state",
+    "AppState",
+    "save session progress",
+    "restore timer",
+    "pause resume timer",
+    "foreground background transition",
+    "breathing session state"
    ]
   }
  }

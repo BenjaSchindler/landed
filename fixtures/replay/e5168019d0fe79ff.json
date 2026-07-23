@@ -1,13 +1,13 @@
 {
  "name": "intake",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
  "output": {
   "kind": "bug",
-  "summary": "Written reflections are erased when a phone call arrives; on 1.2.0",
+  "summary": "Text entered in an exercise is erased after receiving a phone call.",
   "symptoms": [
-   "in-progress exercise answers are lost when the app goes to background during a call"
+   "Reflections typed in an exercise are deleted after a phone call arrives."
   ],
   "app_version": "1.2.0",
   "platform": "unknown",
@@ -16,13 +16,20 @@
   "missing_info": [],
   "search_terms": {
    "user_terms": [
-    "se borró lo que escribí llamada"
+    "reflexiones",
+    "ejercicio",
+    "llamada",
+    "se borró todo lo que escribí"
    ],
    "dev_terms": [
-    "persist answers",
+    "persist exercise input",
+    "save draft",
+    "restore text",
+    "phone call interruption",
     "background",
-    "exercise runner",
-    "restore"
+    "AppState",
+    "lifecycle",
+    "autosave"
    ]
   }
  }

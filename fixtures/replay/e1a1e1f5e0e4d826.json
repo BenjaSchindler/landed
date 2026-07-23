@@ -1,19 +1,23 @@
 {
  "name": "intake",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
  "output": {
   "kind": "praise",
-  "summary": "Positive review after six months of use",
+  "summary": "User praises the habit app as the best they have tried and says they have used it for 6 months.",
   "symptoms": [],
   "app_version": null,
   "platform": "unknown",
   "language": "es",
-  "specific_enough": true,
+  "specific_enough": false,
   "missing_info": [],
   "search_terms": {
-   "user_terms": [],
+   "user_terms": [
+    "mejor app de hábitos",
+    "llevo 6 meses",
+    "gracias"
+   ],
    "dev_terms": []
   }
  }

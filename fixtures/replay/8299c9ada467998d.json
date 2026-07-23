@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "match_sha": "513eaa96086b22b9df576dbd0a2ca8f9b4ecd3c0",
+  "confidence": 0.98,
+  "reasoning": "This change directly fixes a crash when uploading an avatar/photo from the gallery on Android 13+ by requesting the required media image permission. A Galaxy S23 typically runs Android 13 or newer, matching the reported crash scenario.",
+  "symptom_addressed": "App crashes when the user tries to upload a profile picture from the gallery on Android."
+ }
+}

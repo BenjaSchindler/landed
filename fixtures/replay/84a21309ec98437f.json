@@ -1,7 +1,7 @@
 {
  "name": "reply",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
- "output": "Thanks for reporting this — losing what you wrote is the worst. Good news: this was fixed in version 1.1.0, which now saves your answers the moment you switch away. You're on 1.0.0, so updating the app from the store resolves it. — The Ritmo team"
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Thanks for reporting this. The issue where in-progress exercise answers could be lost when the app was backgrounded has already been fixed in version 1.1.0.\n\nYou’re currently on 1.0.0, so please update Ritmo from the store. After updating, your typed answers should be preserved when you briefly switch to another app like WhatsApp and come back.\n\n— The Ritmo team"
 }

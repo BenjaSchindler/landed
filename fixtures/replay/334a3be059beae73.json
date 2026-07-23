@@ -1,13 +1,13 @@
 {
  "name": "intake",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
  "output": {
   "kind": "bug",
-  "summary": "App crashes when uploading a profile picture from the gallery",
+  "summary": "The app crashes when uploading a profile picture from the gallery on a Galaxy S23.",
   "symptoms": [
-   "app crashes when uploading a profile picture from the gallery"
+   "App crashes when the user tries to upload a profile picture from the gallery."
   ],
   "app_version": "1.0.1",
   "platform": "android",
@@ -16,15 +16,21 @@
   "missing_info": [],
   "search_terms": {
    "user_terms": [
-    "crashes upload profile picture"
+    "app crashes",
+    "upload a profile picture",
+    "from my gallery",
+    "galaxy s23",
+    "v 1.0.1"
    ],
    "dev_terms": [
     "crash",
-    "avatar",
-    "upload",
-    "gallery",
-    "permission",
-    "profile photo"
+    "profile picture upload",
+    "gallery picker",
+    "image picker",
+    "photo library",
+    "avatar upload",
+    "Android",
+    "Galaxy S23"
    ]
   }
  }

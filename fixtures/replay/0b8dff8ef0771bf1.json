@@ -1,7 +1,7 @@
 {
  "name": "reply",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
- "output": "Thanks for reporting this! We found and fixed exactly this: the timer now resumes where it left off after an interruption. The fix ships in version 1.2.0, currently in store review — it should reach you around 2026-07-28. — The Ritmo team"
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Thanks for reporting this, and for including your version. We’ve fixed the issue where the breathing timer restarts after switching apps, which matches what happens when an alarm interrupts a session. The fix is included in version 1.2.0, which is currently in review and expected in the store by 2026-07-28.\n\nOnce it’s available, please update from 1.1.0 to 1.2.0 and the timer should no longer restart after the interruption.\n\n— The Ritmo team"
 }

@@ -1,13 +1,13 @@
 {
  "name": "intake",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
  "output": {
   "kind": "bug",
-  "summary": "Breathing timer starts over when an alarm interrupts the session",
+  "summary": "Alarm interruption during a breathing session causes the session timer to restart from the beginning.",
   "symptoms": [
-   "breathing timer restarts from the beginning after an interruption by another app"
+   "When an alarm goes off during a breathing session, the timer starts over from the beginning."
   ],
   "app_version": "1.1.0",
   "platform": "unknown",
@@ -16,15 +16,22 @@
   "missing_info": [],
   "search_terms": {
    "user_terms": [
-    "timer starts over alarm"
+    "alarm goes off",
+    "breathing session",
+    "timer starts over",
+    "starts over from the beginning",
+    "version 1.1.0"
    ],
    "dev_terms": [
-    "timer",
-    "restart",
-    "reset",
-    "resume",
-    "interruption",
-    "breathing"
+    "timer reset on interruption",
+    "alarm interruption",
+    "breathing session timer",
+    "persist timer state",
+    "restore timer state",
+    "background interruption",
+    "AppState",
+    "audio interruption",
+    "save session progress"
    ]
   }
  }

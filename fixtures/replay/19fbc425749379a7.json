@@ -1,23 +1,23 @@
 {
  "name": "intake",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
  "output": {
   "kind": "bug",
-  "summary": "General complaint that the app got worse; no concrete symptom",
+  "summary": "The user says the app is bad now, but does not provide a concrete symptom.",
   "symptoms": [],
   "app_version": null,
   "platform": "unknown",
   "language": "en",
   "specific_enough": false,
   "missing_info": [
-   "What changed for you — is something failing, slower, or harder to use?",
-   "Which app version are you on? You can see it in Settings > About."
+   "What specifically is going wrong or worse in the app? Please describe what you see and the steps that lead to it.",
+   "What app version are you using?"
   ],
   "search_terms": {
    "user_terms": [
-    "app is bad"
+    "app is bad now"
    ],
    "dev_terms": []
   }

@@ -1,7 +1,7 @@
 {
  "name": "reply",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
- "output": "Thanks for the report — this shouldn't be happening on your version, so we've escalated it to the team with priority. We'll get back to you as soon as we know more. — The Ritmo team"
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Thanks for the details, and for including your Galaxy S23 and version. This crash when uploading a profile picture from the gallery was fixed in v1.0.1 with the Android 13+ avatar upload fix, and that fix has been released.\n\nSince you’re already on v1.0.1, please try closing and reopening Ritmo, then try the upload again. If it still crashes, reply here and we’ll keep looking into it.\n\n— The Ritmo team"
 }

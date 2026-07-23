@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "match_sha": "7311bc71f56d57b6b45110b4d59c13f6228dbe69",
+  "confidence": 0.98,
+  "reasoning": "This change specifically fixes the Stats page taking seconds to open for users with 12+ months of history by moving expensive chart aggregation off the render path. That directly matches the reported blank/slow opening Stats screen for a user with over a year of data.",
+  "symptom_addressed": "Stats screen takes 4–5 seconds to open and shows a blank screen for users with lots of historical data."
+ }
+}

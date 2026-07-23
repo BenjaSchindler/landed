@@ -1,30 +1,34 @@
 {
  "name": "intake",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
  "output": {
   "kind": "bug",
-  "summary": "Breathing timer restarts by itself after answering a message",
+  "summary": "The breathing timer resets when the user replies to a message and returns to the app.",
   "symptoms": [
-   "breathing timer resets when switching to another app and back"
+   "The breathing timer resets by itself after the user leaves to reply to a message and comes back."
   ],
   "app_version": "1.0.1",
-  "platform": "unknown",
+  "platform": "android",
   "language": "es",
   "specific_enough": true,
   "missing_info": [],
   "search_terms": {
    "user_terms": [
-    "temporizador se reinicia"
+    "temporizador de respiración se reinicia",
+    "contesto un mensaje y vuelvo",
+    "se reinicia solo"
    ],
    "dev_terms": [
-    "timer",
-    "restart",
-    "reset",
-    "focus",
-    "resume",
-    "breathing"
+    "breathing timer reset",
+    "persist timer state",
+    "background",
+    "foreground",
+    "AppState",
+    "save timer progress",
+    "restore timer state",
+    "resume timer"
    ]
   }
  }

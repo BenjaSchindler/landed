@@ -1,0 +1,7 @@
+{
+ "name": "reply",
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Thanks for the clear report, and for including your version. We’ve identified a fix for the Stats page opening slowly when there’s about a year of history: “fix(stats): stats page slow to open with a year of history.”  \n\nI don’t have a release version or store timing to share yet, but this is on our fix path. Thanks for sticking with Ritmo for a year and a half — that context helps confirm the issue.\n\n— The Ritmo team"
+}

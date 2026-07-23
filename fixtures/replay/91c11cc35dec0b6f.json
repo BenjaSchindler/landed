@@ -1,0 +1,7 @@
+{
+ "name": "reply",
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Thanks for reporting this. The duplicate morning reminder issue was fixed in version 1.1.0: reminders are now canceled before being scheduled again, which prevents the same reminder from being queued twice.\n\nYou’re currently on 1.0.1, so please update Ritmo to 1.1.0 from the app store. After updating, the duplicate notifications should stop.\n\n— The Ritmo team"
+}

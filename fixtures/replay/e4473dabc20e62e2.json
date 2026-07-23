@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "match_sha": null,
+  "confidence": 0.0,
+  "reasoning": "None of the listed changes specifically fixes the streak counter overlapping the header on small iPhones. The only HomeScreen layout change is a vague work-in-progress experiment, so it is not safe to say it addresses this exact readability issue.",
+  "symptom_addressed": null
+ }
+}

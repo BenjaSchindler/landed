@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "match_sha": null,
+  "confidence": 0.0,
+  "reasoning": "None of the listed changes address background battery use, overheating, or Android power consumption. They cover exercise state persistence, avatar upload permissions, and streak timezone calculation instead.",
+  "symptom_addressed": null
+ }
+}

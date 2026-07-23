@@ -1,7 +1,7 @@
 {
  "name": "reply",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
- "output": "Thanks for the detailed report — knowing it shows as the top consumer in battery settings helps a lot. This isn't something we've fixed yet, so we've sent your report straight to the team to investigate. We'll follow up as soon as we know more. — The Ritmo team"
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Thanks for the details, including that you’re on Ritmo 1.1.0 on a Pixel 7. This issue isn’t fixed yet, so if Ritmo is showing as the top battery consumer and the phone is warming overnight, the best short-term workaround is to force close Ritmo before you go to sleep or temporarily uninstall it if the drain is severe. We don’t have a fixed version or release status to share yet, but your report helps us track the impact.\n\n— The Ritmo team"
 }

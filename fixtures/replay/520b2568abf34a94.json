@@ -1,0 +1,7 @@
+{
+ "name": "reply",
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Thanks for telling us. Could you share what specifically feels worse or is going wrong in the app? Please describe what you see and the steps that lead to it, so we can understand the issue.\n\nAlso, what app version are you using? You can find it in Settings > About.\n\n— The Ritmo team"
+}

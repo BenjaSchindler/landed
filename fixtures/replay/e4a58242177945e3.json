@@ -1,0 +1,7 @@
+{
+ "name": "reply",
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Thanks for the suggestion. This isn’t a bug report, but it’s helpful feedback: the current layout can feel stretched on iPad, and a dedicated tablet layout would improve that experience. I’ll pass this request along to the team so it can be considered for future improvements.\n\n— The Ritmo team"
+}

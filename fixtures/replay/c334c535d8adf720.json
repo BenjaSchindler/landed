@@ -1,29 +1,39 @@
 {
  "name": "intake",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
  "output": {
   "kind": "bug",
-  "summary": "Exercise answers are erased after switching apps; version unknown",
+  "summary": "Exercise answers are erased when the user switches to another app for a while.",
   "symptoms": [
-   "in-progress exercise answers are lost when the app goes to background"
+   "Exercise answers are lost after switching to another app for a while."
   ],
   "app_version": null,
   "platform": "unknown",
   "language": "es",
   "specific_enough": true,
   "missing_info": [
-   "¿Qué versión de la app usas? La ves en Ajustes > Acerca de."
+   "¿Qué versión de la app tienes instalada? Puedes verla en los ajustes de la app o en la tienda.",
+   "¿En qué dispositivo y sistema operativo te ocurre (iOS o Android y versión del sistema)?",
+   "¿En qué ejercicio o tipo de ejercicio te pasa?"
   ],
   "search_terms": {
    "user_terms": [
-    "se borran las respuestas"
+    "se me borran las respuestas",
+    "respuestas del ejercicio",
+    "cambio de aplicación",
+    "un rato",
+    "versión normal de la tienda"
    ],
    "dev_terms": [
-    "persist answers",
-    "background",
-    "exercise runner"
+    "persist exercise answers",
+    "save answers on background",
+    "restore answers after app switch",
+    "AppState background",
+    "draft answers persistence",
+    "background save",
+    "restore exercise state"
    ]
   }
  }

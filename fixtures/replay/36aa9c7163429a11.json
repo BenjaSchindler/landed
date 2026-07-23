@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "match_sha": "d1245230f580e3ff59fd93d127efceebc984eb98",
+  "confidence": 0.98,
+  "reasoning": "This change specifically fixes the breathing timer restarting after switching apps by resuming from the original start timestamp instead of resetting on app focus. That directly matches the report of the timer resetting after checking a text mid-session.",
+  "symptom_addressed": "Breathing timer resets to zero after the user switches away to check a text during a session."
+ }
+}

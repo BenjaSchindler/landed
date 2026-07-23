@@ -1,0 +1,7 @@
+{
+ "name": "reply",
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Thanks for flagging this — duplicate daily reminder notifications were a bug, and we’ve fixed it by canceling scheduled reminders before re-scheduling them. The fix is released in version 1.1.0.\n\nCould you check which app version you’re using? You can find it in Settings > About. If you’re on an older version, updating should stop the duplicate morning reminders.\n\n— The Ritmo team"
+}

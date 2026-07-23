@@ -1,7 +1,7 @@
 {
  "name": "reply",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
- "output": "¡Hola! Gracias por avisarnos. Ese error al elegir la foto de la galería ya está corregido en la versión 1.0.1 — el problema era un permiso de Android. Como tienes la 1.0.0, actualiza Ritmo desde la Play Store y deberías poder subir tu foto sin problemas. — The Ritmo team"
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "¡Hola! Gracias por el dato del modelo y la versión. El problema que describes al subir la foto de perfil desde la galería en Android 13+ ya fue corregido.\n\nEstás usando la versión 1.0.0, y el arreglo está disponible en la versión 1.0.1, que ya fue publicada. Por favor actualiza la app desde la tienda y vuelve a intentar subir tu foto de perfil.\n\n— The Ritmo team"
 }

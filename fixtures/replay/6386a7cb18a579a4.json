@@ -1,7 +1,7 @@
 {
  "name": "reply",
- "kind": "authored",
- "model": "hand-authored",
- "authored": true,
- "output": "Thanks for asking! Right now Ritmo can share a weekly summary image, but there's no full data export yet — it's on our list and requests like yours push it up. We've noted yours. — The Ritmo team"
+ "kind": "text",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": "Hi! Ritmo doesn’t currently offer a built-in data export option, so there isn’t a way to download your history directly from the app right now.\n\nFor keeping a backup, the best available option is to make sure your app data is included in your device’s normal backup system, if you use one.\n\nThanks for asking — The Ritmo team"
 }
