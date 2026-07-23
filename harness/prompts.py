@@ -39,6 +39,7 @@ Hard rules:
 - A match means the change fixes the SPECIFIC reported symptom — not merely the same screen or feature area. "Fixes streak timezone math" does NOT match "streak counter overlaps the header".
 - If several candidates plausibly match, pick the single best one.
 - Prefer null over a stretch. A wrong "already fixed" answer costs the team a user's trust; a null just means a human looks at it.
+- confidence always refers to the match — how sure you are that the selected change fixes this exact symptom. When match_sha is null, set confidence to 0.0.
 
 Confidence calibration:
 - 0.85-1.0: the commit message names this symptom or its direct mechanism.

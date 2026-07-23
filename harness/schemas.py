@@ -34,7 +34,7 @@ class IntakeResult(BaseModel):
 
 class Adjudication(BaseModel):
     match_sha: Optional[str] = Field(description="Full sha of the ONE candidate that fixes the reported symptom, or null if none does")
-    confidence: float = Field(description="0.0-1.0: how confident that the matched change fixes this exact symptom")
+    confidence: float = Field(description="0.0-1.0: how confident that the matched change fixes this exact symptom; 0.0 when match_sha is null")
     reasoning: str = Field(description="One or two plain-language sentences a support agent can read")
     symptom_addressed: Optional[str] = Field(description="Which reported symptom the change addresses, or null")
 

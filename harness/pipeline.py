@@ -32,7 +32,10 @@ CONF_FIXED = 0.70      # at or above: safe to tell the user it is fixed
 CONF_MENTION = 0.40    # between: surface the candidate to a human, claim nothing
 TOP_K = 12
 
-_VERSION_RE = re.compile(r"\b\d+\.\d+(?:\.\d+)?\b")
+# optional "v" prefix must be consumed: in "v1.1.0" there is no \b between "v"
+# and "1", so a bare \d pattern would match the inner "1.0" and misread the
+# version (found by the live eval run — a valid draft was wrongly rejected).
+_VERSION_RE = re.compile(r"\bv?(\d+\.\d+(?:\.\d+)?)\b", re.IGNORECASE)
 
 
 class Pipeline:
