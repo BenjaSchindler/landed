@@ -2,14 +2,16 @@
 
 Three modes:
   live   — calls the OpenAI API (default when OPENAI_API_KEY resolves)
-  replay — serves recorded/authored fixtures; lets the whole demo run keyless
+  replay — serves recorded fixtures; lets the whole demo run keyless
   record — live + writes every response to fixtures/ (LANDED_RECORD=1)
 
-Structured calls go through chat.completions.parse() with a Pydantic model, so
-schema enforcement happens at the API layer, not in regex-land. GPT-5 models
-are reasoning models: no temperature/top_p — behavior is steered by prompts
-plus a per-call reasoning effort. Fixture keys hash the prompt content (not
-the model), so switching models re-records cleanly.
+Calls go through the Responses API — OpenAI's recommended surface for GPT-5
+reasoning models. Structured stages use responses.parse() with a Pydantic
+model, so schema enforcement happens at the API layer, not in regex-land.
+GPT-5 models are reasoning models: no temperature/top_p — behavior is steered
+by prompts plus a per-call reasoning effort. store=False on every call: user
+feedback is support data and is not retained server-side. Fixture keys hash
+the prompt content (not the model), so switching models re-records cleanly.
 """
 from __future__ import annotations
 
@@ -19,9 +21,13 @@ import os
 from pathlib import Path
 from typing import Type, TypeVar
 
+from dotenv import load_dotenv
 from pydantic import BaseModel
 
-FIXTURES_DIR = Path(__file__).resolve().parent.parent / "fixtures" / "replay"
+ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(ROOT / ".env")  # supplies OPENAI_API_KEY / OPENAI_MODEL; real env wins
+
+FIXTURES_DIR = ROOT / "fixtures" / "replay"
 DEFAULT_MODEL = os.environ.get("OPENAI_MODEL", "gpt-5.5")
 
 T = TypeVar("T", bound=BaseModel)
@@ -32,7 +38,7 @@ class LLMUnavailable(Exception):
 
 
 class LLMBadOutput(Exception):
-    """Model refused or produced unusable output for a structured call."""
+    """Model refused, ran out of tokens, or produced unusable structured output."""
 
 
 class ReplayMiss(Exception):
@@ -79,20 +85,20 @@ class LLM:
 
         import openai
         try:
-            completion = self.client.beta.chat.completions.parse(
+            response = self.client.responses.parse(
                 model=DEFAULT_MODEL,
-                reasoning_effort=effort,
-                max_completion_tokens=max_tokens,  # includes reasoning tokens
-                messages=[{"role": "system", "content": system},
-                          {"role": "user", "content": user}],
-                response_format=model_cls,
+                instructions=system,
+                input=user,
+                reasoning={"effort": effort},
+                max_output_tokens=max_tokens,  # includes reasoning tokens
+                text_format=model_cls,
+                store=False,
             )
         except (openai.APIConnectionError, openai.APIStatusError) as e:
             raise LLMUnavailable(f"{name}: {type(e).__name__}") from e
-        message = completion.choices[0].message
-        if getattr(message, "refusal", None) or message.parsed is None:
-            raise LLMBadOutput(f"{name}: refusal={getattr(message, 'refusal', None)!r}")
-        result: T = message.parsed
+        if response.status == "incomplete" or response.output_parsed is None:
+            raise LLMBadOutput(f"{name}: status={response.status}, no parsed output")
+        result: T = response.output_parsed
         if self.record:
             self._write_fixture(key, name, "structured", result.model_dump())
         return result
@@ -105,19 +111,19 @@ class LLM:
 
         import openai
         try:
-            completion = self.client.chat.completions.create(
+            response = self.client.responses.create(
                 model=DEFAULT_MODEL,
-                reasoning_effort=effort,
-                max_completion_tokens=max_tokens,
-                messages=[{"role": "system", "content": system},
-                          {"role": "user", "content": user}],
+                instructions=system,
+                input=user,
+                reasoning={"effort": effort},
+                max_output_tokens=max_tokens,
+                store=False,
             )
         except (openai.APIConnectionError, openai.APIStatusError) as e:
             raise LLMUnavailable(f"{name}: {type(e).__name__}") from e
-        message = completion.choices[0].message
-        if getattr(message, "refusal", None) or not message.content:
-            raise LLMBadOutput(f"{name}: refusal={getattr(message, 'refusal', None)!r}")
-        out = message.content.strip()
+        out = (response.output_text or "").strip()
+        if response.status == "incomplete" or not out:
+            raise LLMBadOutput(f"{name}: status={response.status}, empty output")
         if self.record:
             self._write_fixture(key, name, "text", out)
         return out

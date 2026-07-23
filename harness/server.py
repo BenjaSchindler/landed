@@ -15,7 +15,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
 from .indexer import RepoIndex
-from .llm import LLM
+from .llm import DEFAULT_MODEL, LLM
 from .pipeline import Pipeline
 from .schemas import AnalysisResult, FeedbackItem
 
@@ -62,6 +62,7 @@ def meta():
     pipeline: Pipeline = app.state.pipeline
     return {
         "mode": app.state.mode,
+        "model": DEFAULT_MODEL if app.state.mode == "live" else None,
         "commits": len(pipeline.index.commits),
         "releases": [r.model_dump() for r in pipeline.index.releases],
     }

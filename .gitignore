@@ -4,3 +4,4 @@ __pycache__/
 demo/app-repo/
 evals/last_run.json
 .claude/
+.env
