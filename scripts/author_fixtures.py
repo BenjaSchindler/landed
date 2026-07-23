@@ -1,19 +1,20 @@
-"""Author replay fixtures for every eval case, and verify the harness logic.
+"""Verify the harness logic by playing the model's role by hand.
 
-This script plays the model's role by hand: for each labeled case it supplies
-a realistic intake / adjudication / reply, runs the REAL pipeline around those
-outputs, and asserts the deterministic layers (routing, retrieval, sha
-validation, version arithmetic, reply guardrails) produce the gold verdict.
+For each labeled eval case this script supplies a realistic intake /
+adjudication / reply, runs the REAL pipeline around those outputs, and asserts
+the deterministic layers (routing, retrieval, sha validation, version
+arithmetic, reply guardrails) produce the gold verdict. It isolates the
+plumbing from the model: when a live eval number moves, this gate tells you
+whether to look at the prompts or the pipeline.
 
-So it is two things at once:
-  1. a fixture generator that lets the demo and evals run without an API key
-  2. a logic test for everything in the harness that is not the model
-
-`LANDED_RECORD=1 python -m scripts.record_fixtures` later replaces these
-hand-authored outputs with real model responses — same keys, same files.
+By default nothing is written. With --write it also saves the hand-authored
+outputs as replay fixtures — useful for bootstrapping before any live run.
+The shipped fixtures are real recorded model outputs
+(`LANDED_RECORD=1 python -m harness.eval` re-records them).
 """
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -30,24 +31,26 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 class AuthorLLM:
-    """Duck-typed LLM seam: serves pre-written outputs and records them as
-    fixtures keyed by the exact prompts the pipeline builds."""
+    """Duck-typed LLM seam: serves pre-written outputs and (optionally) records
+    them as fixtures keyed by the exact prompts the pipeline builds."""
 
-    def __init__(self, outputs: dict):
+    def __init__(self, outputs: dict, write: bool = False):
         self.outputs = outputs
+        self.write = write
         self.mode = "author"
 
-    def structured(self, name, system, user, model_cls, **kw):
+    def _serve(self, name, system, user):
         if name not in self.outputs:
             raise AssertionError(f"pipeline requested unexpected call '{name}'")
-        write_authored_fixture(name, system, user, self.outputs[name])
-        return model_cls.model_validate(self.outputs[name])
+        if self.write:
+            write_authored_fixture(name, system, user, self.outputs[name])
+        return self.outputs[name]
+
+    def structured(self, name, system, user, model_cls, **kw):
+        return model_cls.model_validate(self._serve(name, system, user))
 
     def text(self, name, system, user, **kw):
-        if name not in self.outputs:
-            raise AssertionError(f"pipeline requested unexpected call '{name}'")
-        write_authored_fixture(name, system, user, self.outputs[name])
-        return self.outputs[name]
+        return self._serve(name, system, user)
 
 
 def intake(*, kind="bug", summary, symptoms, version=None, platform="unknown",
@@ -100,11 +103,11 @@ def build_cases(index: RepoIndex):
         "seed-001": {
             "intake": intake(summary="Exercise answers are erased when a phone call interrupts the exercise",
                              symptoms=["in-progress exercise answers are lost when the app goes to background during a phone call"],
-                             version="1.0.1", platform="android", lang="es",
-                             user_terms=["se borra lo contestado", "llamada ejercicio"],
+                             version="1.0.1", platform="android", lang="en",
+                             user_terms=["answers gone after phone call", "lost what I answered"],
                              dev_terms=["persist answers", "background", "AppState", "exercise runner", "restore state", "lost progress"]),
             "adjudicate": A(PERSIST, 0.93, R_PERSIST, "answers lost when app is backgrounded"),
-            "reply": "¡Gracias por contarnos, y qué lata que te pasara tres veces! 😔 Buena noticia: esto ya está corregido en la versión 1.1.0 — al recibir una llamada, tus respuestas ahora se guardan solas. Como estás en la 1.0.1, solo necesitas actualizar Ritmo desde la tienda y no debería volver a pasar. — The Ritmo team",
+            "reply": "Thanks for telling us — three times is three too many! 😤 Good news: this is already fixed in version 1.1.0. When a call comes in, your answers now save themselves automatically. Since you're on 1.0.1, just update Ritmo from the store and it shouldn't happen again. — The Ritmo team",
         },
         "seed-002": {
             "intake": intake(summary="Breathing timer restarts from zero when the user briefly switches apps",
@@ -118,11 +121,11 @@ def build_cases(index: RepoIndex):
         "seed-003": {
             "intake": intake(summary="Beta tester on 1.2.0 still loses exercise answers when switching apps",
                              symptoms=["in-progress exercise answers are lost when the app goes to background"],
-                             version="1.2.0", platform="unknown", lang="es",
-                             user_terms=["pierdo respuestas", "cambio de app"],
+                             version="1.2.0", platform="unknown", lang="en",
+                             user_terms=["losing my answers", "switch apps"],
                              dev_terms=["persist answers", "background", "exercise runner", "restore state"]),
             "adjudicate": A(PERSIST, 0.9, R_PERSIST, "answers lost when app is backgrounded"),
-            "reply": "Gracias por avisarnos — esto no debería estar pasándote en la 1.2.0, así que lo estamos revisando con prioridad. Te escribimos apenas tengamos novedades; tu reporte ya está con el equipo. — The Ritmo team",
+            "reply": "Thanks for flagging this — you're right, this shouldn't be happening on 1.2.0, so we're looking into it with priority. Your report is already with the team and we'll get back to you as soon as we know more. — The Ritmo team",
         },
         "seed-004": {
             "intake": intake(summary="Phone runs warm and battery drains overnight, app shown as top consumer",
@@ -130,7 +133,7 @@ def build_cases(index: RepoIndex):
                              version="1.1.0", platform="android", lang="en",
                              user_terms=["battery drains overnight", "phone warm"],
                              dev_terms=["battery", "drain", "background task", "wakelock", "power", "overnight"]),
-            "adjudicate": A(None, 0.1, R_NONE_BATTERY),
+            "adjudicate": A(None, 0.0, R_NONE_BATTERY),
             "reply": "Thanks for the detailed report — knowing it shows as the top consumer in battery settings helps a lot. This isn't something we've fixed yet, so we've sent your report straight to the team to investigate. We'll follow up as soon as we know more. — The Ritmo team",
         },
         "seed-005": {
@@ -165,7 +168,7 @@ def build_cases(index: RepoIndex):
                              version="1.1.0", platform="ios", lang="en",
                              user_terms=["streak counter overlaps header"],
                              dev_terms=["streak", "layout", "overlap", "header", "small screen", "font"]),
-            "adjudicate": A(None, 0.15, R_NONE_LAYOUT),
+            "adjudicate": A(None, 0.0, R_NONE_LAYOUT),
             "reply": "Thanks for catching that — small-screen layouts are easy to miss and this one slipped through. It isn't fixed yet, so we've filed it with the team with your device details attached. We'll let you know when a fix ships. — The Ritmo team",
         },
         "seed-009": {
@@ -208,11 +211,11 @@ def build_cases(index: RepoIndex):
         "var-013": {
             "intake": intake(summary="Duplicate daily reminder notifications every morning",
                              symptoms=["the same daily reminder notification arrives twice, a minute apart"],
-                             version="1.0.1", platform="android", lang="es",
-                             user_terms=["dos notificaciones iguales"],
+                             version="1.0.1", platform="android", lang="en",
+                             user_terms=["two identical reminders"],
                              dev_terms=["notification", "duplicate", "reminder", "cancel", "schedule"]),
             "adjudicate": A(NOTIF, 0.9, R_NOTIF, "duplicate reminder notifications"),
-            "reply": "¡Gracias por el aviso! Ese doble recordatorio ya está corregido en la versión 1.1.0 — el recordatorio se agendaba dos veces. Como tienes la 1.0.1, actualiza Ritmo desde la tienda y las notificaciones duplicadas desaparecen. — The Ritmo team",
+            "reply": "Thanks for the heads-up! That double reminder is already fixed in version 1.1.0 — the reminder was being scheduled twice. Since you're on 1.0.1, update Ritmo from the store and the duplicate notifications will stop. — The Ritmo team",
         },
         "var-014": {
             "intake": intake(summary="App crashes when uploading a profile picture from the gallery",
@@ -238,17 +241,17 @@ def build_cases(index: RepoIndex):
                              version="1.1.0", platform="ios", lang="es",
                              user_terms=["número se superpone con el título"],
                              dev_terms=["streak", "layout", "overlap", "header", "small screen"]),
-            "adjudicate": A(None, 0.15, R_NONE_LAYOUT),
+            "adjudicate": A(None, 0.0, R_NONE_LAYOUT),
             "reply": "¡Gracias por el detalle! Tienes razón y aún no está corregido, así que pasamos tu reporte al equipo con los datos de tu dispositivo. Te avisamos cuando salga el arreglo. — The Ritmo team",
         },
         "var-017": {
             "intake": intake(summary="Stats screen takes several seconds to open for a long-time user",
                              symptoms=["stats screen very slow to open for accounts with much history"],
-                             version="1.1.0", platform="unknown", lang="es",
-                             user_terms=["estadísticas demoran en abrir"],
+                             version="1.1.0", platform="unknown", lang="en",
+                             user_terms=["stats take long to open"],
                              dev_terms=["stats", "slow", "performance", "charts", "memoize"]),
             "adjudicate": A(STATS, 0.87, R_STATS, "stats screen slow with large history"),
-            "reply": "¡Gracias por avisarnos! Con un año y medio de datos te topaste justo con lo que acabamos de corregir: las estadísticas recalculaban todo al abrir. El arreglo ya está listo y sale en la próxima actualización — no necesitas hacer nada. — The Ritmo team",
+            "reply": "Thanks for letting us know! With a year and a half of data you hit exactly what we just fixed: the stats were recomputing everything on open. The fix is done and ships with the next update — nothing you need to do. — The Ritmo team",
         },
         "var-018": {
             "intake": intake(summary="Unspecified crashes", symptoms=[], specific=False,
@@ -273,7 +276,7 @@ def build_cases(index: RepoIndex):
                              version="1.1.0", platform="android", lang="en",
                              user_terms=["phone hot battery gone"],
                              dev_terms=["battery", "drain", "overnight", "wakelock", "background"]),
-            "adjudicate": A(None, 0.1, R_NONE_BATTERY),
+            "adjudicate": A(None, 0.0, R_NONE_BATTERY),
             "reply": "That sounds genuinely frustrating — thanks for telling us instead of just uninstalling. This isn't something we've fixed yet, so your report went straight to the team to investigate, with your device details attached. We'll follow up as soon as we know more. — The Ritmo team",
         },
         "var-022": {
@@ -296,8 +299,8 @@ def build_cases(index: RepoIndex):
         },
         "var-024": {
             "intake": intake(kind="feature_request", summary="Request for a tablet/iPad layout",
-                             symptoms=[], lang="es", user_terms=["modo tablet"], dev_terms=["tablet", "ipad", "layout"]),
-            "reply": "¡Gracias por la sugerencia! Un modo para tablet está anotado para el equipo de producto — mientras tanto, sabemos que en iPad la vista no es la ideal. — The Ritmo team",
+                             symptoms=[], lang="en", user_terms=["tablet layout"], dev_terms=["tablet", "ipad", "layout"]),
+            "reply": "Thanks for the suggestion! A proper tablet layout is noted for the product team — you're right that the iPad view isn't ideal yet. — The Ritmo team",
         },
         "var-025": {
             "intake": intake(summary="General complaint that the app got worse; no concrete symptom",
@@ -311,6 +314,11 @@ def build_cases(index: RepoIndex):
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--write", action="store_true",
+                        help="also save the authored outputs as replay fixtures")
+    args = parser.parse_args()
+
     make_repo()
     index = RepoIndex(ROOT / "demo" / "app-repo", ROOT / "demo" / "releases.json")
     cases = [json.loads(l) for l in (ROOT / "evals" / "cases.jsonl").read_text().splitlines() if l.strip()]
@@ -320,7 +328,7 @@ def main() -> None:
     for case in cases:
         data = authored[case["id"]]
         item = FeedbackItem(id=case["id"], text=case["text"], channel=case.get("channel", "eval"))
-        pipeline = Pipeline(index, AuthorLLM(data))
+        pipeline = Pipeline(index, AuthorLLM(data, write=args.write))
         result = pipeline.analyze(item)
 
         got, want = result.verdict.verdict.value, case["gold"]["verdict"]
@@ -343,9 +351,11 @@ def main() -> None:
         if problems:
             failures.append((case["id"], problems))
 
-    n_fixtures = len(list((ROOT / "fixtures" / "replay").glob("*.json")))
-    print(f"\n{len(cases) - len(failures)}/{len(cases)} cases pass through the real pipeline; "
-          f"{n_fixtures} fixtures written")
+    tail = ""
+    if args.write:
+        n_fixtures = len(list((ROOT / "fixtures" / "replay").glob("*.json")))
+        tail = f"; {n_fixtures} fixtures written"
+    print(f"\n{len(cases) - len(failures)}/{len(cases)} cases pass through the real pipeline{tail}")
     if failures:
         sys.exit(1)
 
