@@ -17,7 +17,7 @@ from pydantic import BaseModel
 
 from .indexer import RepoIndex
 from .llm import DEFAULT_MODEL, LLM
-from .pipeline import DEPLOY_TAGS, Pipeline
+from .pipeline import DEPLOY_CONTINUOUS, DEPLOY_TAGS, Pipeline
 from .schemas import AnalysisResult, FeedbackItem
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -69,12 +69,33 @@ def product_name(env: Mapping[str, str], repo_path: str) -> str:
     return repo.name
 
 
+def resolve_branches(env: Mapping[str, str], deploy_model: str) -> list[str]:
+    """Deployment stages, most advanced first: LANDED_BRANCHES="main,staging".
+
+    Continuous delivery reads "is it in the history?" as "did it ship", so the
+    corpus decides the claim. Left to HEAD that is whatever was last checked
+    out, and a fix living only on a feature branch gets reported as already
+    fixed — the one failure this tool must not produce. Naming the stages is
+    therefore required, not optional, once tags are out of the picture.
+    """
+    raw = env.get("LANDED_BRANCHES", "").strip()
+    branches = [b.strip() for b in raw.split(",") if b.strip()]
+    if deploy_model == DEPLOY_CONTINUOUS and not branches:
+        raise RuntimeError(
+            "LANDED_DEPLOY_MODEL=continuous needs LANDED_BRANCHES to know what is "
+            "deployed, e.g. LANDED_BRANCHES=main,staging (production first). "
+            "Without it the verdict would depend on the checked-out branch."
+        )
+    return branches
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     repo_path, releases = resolve_sources(os.environ, lambda: str(_ensure_demo_repo()))
-    index = RepoIndex(repo_path, releases)
-    llm = LLM()
     deploy_model = os.environ.get("LANDED_DEPLOY_MODEL", DEPLOY_TAGS)
+    branches = resolve_branches(os.environ, deploy_model)
+    index = RepoIndex(repo_path, releases, branches)
+    llm = LLM()
     product = product_name(os.environ, repo_path)
     app.state.pipeline = Pipeline(index, llm, team_signature=f"The {product} team",
                                   deploy_model=deploy_model)
@@ -109,6 +130,7 @@ def meta():
         "deploy_model": app.state.deploy_model,
         "product": app.state.product,
         "repo": app.state.repo,
+        "branches": pipeline.index.branches,
         "commits": len(pipeline.index.commits),
         "releases": [r.model_dump() for r in pipeline.index.releases],
     }

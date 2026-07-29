@@ -59,6 +59,7 @@ class Commit(BaseModel):
     body: str
     files: list[str]
     fixed_in: Optional[str] = None   # first release tag containing this commit, e.g. "1.1.0"; None = unreleased
+    stage: Optional[str] = None      # continuous delivery: furthest branch containing it, e.g. "main"
 
 
 class Release(BaseModel):

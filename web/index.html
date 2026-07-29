@@ -230,11 +230,18 @@ async function boot() {
   // both are configurable, and neither is guessable from the inbox
   document.getElementById("product").textContent = meta.product;
   const repoEl = document.getElementById("repo");
-  const delivery = meta.deploy_model === "continuous" ? "continuous deploys" : "tagged releases";
+  // the live branch decides what counts as shipped, so name it rather than
+  // leaving the reader to assume which checkout the evidence came from
+  const branches = meta.branches || [];
+  const delivery = meta.deploy_model === "continuous"
+    ? (branches.length ? `live: ${branches[0]}` : "continuous deploys")
+    : "tagged releases";
   repoEl.innerHTML = `<b></b> · <span class="dm"></span>`;
   repoEl.querySelector("b").textContent = meta.repo.name;
   repoEl.querySelector(".dm").textContent = delivery;
-  repoEl.title = meta.repo.path;
+  repoEl.title = branches.length
+    ? `${meta.repo.path}\nstages: ${branches.join(" ← ")}`
+    : meta.repo.path;
   await refreshList();
   const want = new URLSearchParams(location.search).get("item");
   if (want && items.some(i => i.id === want)) select(want);

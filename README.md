@@ -79,15 +79,24 @@ Without a `LANDED_RELEASES` manifest, every git tag counts as a released
 version. Analyzing your own feedback requires live mode.
 
 **If you deploy continuously** (a web app, no tags, no store review), set
-`LANDED_DEPLOY_MODEL=continuous`. Merging becomes shipping, so there is no
-version to compare and no version to ask the reporter for; the same question —
-*did the fix reach this person?* — is answered with deploy dates instead. A fix
-that went live before the report arrived is the regression signal, exactly as a
-reporter running a version that already contains the fix is under `tags`.
+`LANDED_DEPLOY_MODEL=continuous` and name your deployment branches, most
+advanced first. Merging becomes shipping, so there is no version to compare and
+no version to ask the reporter for; the same question — *did the fix reach this
+person?* — is answered by branches and dates instead.
 
 ```bash
-LANDED_REPO=/path/to/your/webapp LANDED_DEPLOY_MODEL=continuous make demo
+LANDED_REPO=/path/to/your/webapp \
+LANDED_DEPLOY_MODEL=continuous \
+LANDED_BRANCHES=main,staging make demo
 ```
+
+`LANDED_BRANCHES` is required in continuous mode, and the requirement is the
+point: without it the corpus is whatever `HEAD` was left pointing at, so a fix
+living only on a feature branch reads as *already fixed* — a confident false
+claim, sent to a user. With stages named, the first branch is what users are
+running (`already_fixed`, or `regression` when the fix predates the report),
+anything further back is merged but not in their hands (`fix_coming`), and work
+on unnamed branches never enters the corpus at all, so it cannot be cited.
 
 ## What's real vs. stubbed
 

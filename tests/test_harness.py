@@ -27,10 +27,10 @@ SHA_OTHER = "b" * 40
 SHA_BOGUS = "f" * 40
 
 
-def make_commit(sha=SHA_FIX, fixed_in="1.1.0"):
+def make_commit(sha=SHA_FIX, fixed_in="1.1.0", stage=None):
     return Commit(sha=sha, date="2026-04-22T09:30:00-03:00",
                   subject="fix: persist in-progress answers when backgrounded",
-                  body="", files=["src/exercise/runner.ts"], fixed_in=fixed_in)
+                  body="", files=["src/exercise/runner.ts"], fixed_in=fixed_in, stage=stage)
 
 
 def make_intake(version="1.0.1", kind="bug", specific=True, lang="en", missing=()):
@@ -46,9 +46,10 @@ def make_intake(version="1.0.1", kind="bug", specific=True, lang="en", missing=(
 class FakeIndex:
     """Just enough of RepoIndex for compute_verdict and Pipeline."""
 
-    def __init__(self, commits, releases):
+    def __init__(self, commits, releases, branches=()):
         self.commits = commits
         self.releases = releases
+        self.branches = list(branches)
         self._by_sha = {c.sha: c for c in commits}
 
     def search(self, terms, top_k=12):
@@ -164,8 +165,8 @@ class TestContinuousDelivery(unittest.TestCase):
     JUST_AFTER = "2026-04-23T10:00:00-03:00"   # inside the propagation window
     LONG_AFTER = "2026-06-01T10:00:00-03:00"   # weeks after the fix went live
 
-    def verdict(self, reported_at, fixed_in=None, conf=0.9):
-        index = FakeIndex([make_commit(fixed_in=fixed_in)], [])
+    def verdict(self, reported_at, fixed_in=None, conf=0.9, stage=None, branches=()):
+        index = FakeIndex([make_commit(fixed_in=fixed_in, stage=stage)], [], branches)
         return compute_verdict(make_intake(version=None), adj(conf=conf), index,
                                DEPLOY_CONTINUOUS, reported_at)
 
@@ -211,6 +212,24 @@ class TestContinuousDelivery(unittest.TestCase):
             self.assertIn("2026-04-22", text)
             for banned in ("Settings > About", "Acerca de", "tienda", "store", "actualiza"):
                 self.assertNotIn(banned.lower(), text.lower(), f"{banned!r} leaked: {text}")
+
+    def test_a_fix_stuck_on_pre_production_is_not_in_anyone_s_hands(self):
+        # this is the bug the branch work exists to kill: the fix exists, but on
+        # red-blanca, so telling the reporter to reload would be a false claim
+        v = self.verdict(self.LONG_AFTER, stage="red-blanca", branches=("main", "red-blanca"))
+        self.assertEqual(v.verdict, Verdict.FIX_COMING)
+        self.assertIn("red-blanca", v.reasoning)
+        self.assertIn("main", v.reasoning)
+        self.assertIsNone(v.deployed_at)   # nothing was deployed, so claim no date
+
+    def test_reaching_the_live_branch_is_what_counts_as_shipped(self):
+        v = self.verdict(self.BEFORE, stage="main", branches=("main", "red-blanca"))
+        self.assertEqual(v.verdict, Verdict.ALREADY_FIXED)
+        self.assertEqual(v.deployed_at, "2026-04-22")
+
+    def test_the_live_branch_still_regresses_on_dates(self):
+        v = self.verdict(self.LONG_AFTER, stage="main", branches=("main", "red-blanca"))
+        self.assertEqual(v.verdict, Verdict.REGRESSION_SUSPECTED)
 
     def test_continuous_support_leaves_the_app_store_prompt_byte_identical(self):
         # fixture keys hash the prompt, so perturbing the app-store prompt orphans
@@ -313,6 +332,18 @@ class TestSourceResolution(unittest.TestCase):
         self.assertEqual(product_name({}, "/srv/doctor911-site-2.0"), "doctor911-site-2.0")
         self.assertEqual(
             product_name({"LANDED_PRODUCT": "Doctor911"}, "/srv/doctor911-site-2.0"), "Doctor911")
+
+    def test_continuous_refuses_to_guess_which_branch_is_deployed(self):
+        from harness.server import resolve_branches
+        with self.assertRaises(RuntimeError):
+            resolve_branches({}, "continuous")
+        self.assertEqual(
+            resolve_branches({"LANDED_BRANCHES": "main, red-blanca"}, "continuous"),
+            ["main", "red-blanca"])
+
+    def test_tagged_products_may_leave_branches_unset(self):
+        from harness.server import resolve_branches
+        self.assertEqual(resolve_branches({}, "tags"), [])
 
     def test_the_demo_keeps_its_brand(self):
         from harness.server import DEMO, product_name

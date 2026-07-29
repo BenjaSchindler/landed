@@ -229,7 +229,8 @@ def compute_verdict(intake: IntakeResult, adjudication: Adjudication | None,
 
     conf = adjudication.confidence
     if continuous:
-        return _continuous_verdict(commit, conf, base, reported_at, adjudication.reasoning)
+        return _continuous_verdict(commit, conf, base, reported_at, adjudication.reasoning,
+                                   live_branch=(index.branches[0] if index.branches else None))
 
     if commit.fixed_in is None:
         return VerdictResult(
@@ -267,14 +268,26 @@ def compute_verdict(intake: IntakeResult, adjudication: Adjudication | None,
 
 
 def _continuous_verdict(commit, conf: float, base: dict, reported_at: str | None,
-                        why: str) -> VerdictResult:
+                        why: str, live_branch: str | None = None) -> VerdictResult:
     """Merged is shipped, so the question becomes *when*, not *which version*.
 
     A fix that went live before the reporter hit the symptom is the continuous
     analogue of a reporter running a version that already contains the fix:
     either it did not work or the bug came back. A fix that landed after they
     wrote in is simply already fixed.
+
+    "Shipped" means reaching the branch that is actually deployed. When stages
+    are named, a commit that only got as far as pre-production is merged but not
+    in anyone's hands — the same fix_coming the tagged model gets from a release
+    that is built but not yet in stores.
     """
+    if live_branch and commit.stage and commit.stage != live_branch:
+        return VerdictResult(
+            verdict=Verdict.FIX_COMING, fix_commit=commit, confidence=conf, **base,
+            reasoning=f"Fixed on {commit.date[:10]} ({why}), but the change is only on "
+                      f"{commit.stage} — it has not been deployed to {live_branch} yet, "
+                      "so it is not in users' hands.")
+
     deployed_at = commit.date[:10]
     deployed, reported = _parse_iso(commit.date), _parse_iso(reported_at)
     if deployed and reported and (reported - deployed).days > DEPLOY_GRACE_DAYS:

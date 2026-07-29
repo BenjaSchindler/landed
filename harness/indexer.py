@@ -53,8 +53,17 @@ def _git(repo: Path, *args: str) -> str:
 
 
 class RepoIndex:
-    def __init__(self, repo_path: str | Path, releases_path: str | Path | None = None):
+    def __init__(self, repo_path: str | Path, releases_path: str | Path | None = None,
+                 branches: list[str] | None = None):
+        """branches: deployment stages, most advanced first (e.g. ["main", "staging"]).
+
+        Without it the corpus is whatever HEAD happens to point at, which makes
+        the evidence depend on who last ran `git checkout`. Naming the stages
+        also keeps work that never shipped — experimental branches — out of the
+        corpus entirely, so it cannot be cited as a fix that reached anyone.
+        """
         self.repo = Path(repo_path)
+        self.branches = branches or []
         self.commits: list[Commit] = []
         self.releases: list[Release] = []
         self._by_sha: dict[str, Commit] = {}
@@ -76,13 +85,21 @@ class RepoIndex:
 
     def _load_commits(self) -> None:
         fmt = f"{RS}%H{US}%aI{US}%s{US}%b{US}"
-        raw = _git(self.repo, "log", "--no-merges", "--name-only", f"--pretty=format:{fmt}")
+        # named stages define the corpus; otherwise it is HEAD's history
+        refs = list(self.branches)
+        raw = _git(self.repo, "log", *refs, "--no-merges", "--name-only", f"--pretty=format:{fmt}")
         # first tag (in semver order) containing each commit
         sha_to_tag: dict[str, str] = {}
         tags = [t for t in _git(self.repo, "tag", "--list", "--sort=version:refname").split() if t]
         for tag in tags:
             for sha in _git(self.repo, "rev-list", tag).split():
                 sha_to_tag.setdefault(sha, tag.lstrip("v"))
+        # furthest stage containing each commit: walk least-advanced first so the
+        # more advanced branch overwrites, leaving "as far as this change got"
+        sha_to_stage: dict[str, str] = {}
+        for branch in reversed(refs):
+            for sha in _git(self.repo, "rev-list", branch).split():
+                sha_to_stage[sha] = branch
 
         for record in raw.split(RS):
             if not record.strip():
@@ -93,6 +110,7 @@ class RepoIndex:
             self.commits.append(Commit(
                 sha=sha, date=date, subject=subject.strip(), body=body.strip(),
                 files=files, fixed_in=sha_to_tag.get(sha),
+                stage=sha_to_stage.get(sha),
             ))
         self._by_sha = {c.sha: c for c in self.commits}
 
