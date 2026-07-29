@@ -268,6 +268,8 @@ def build_cases(index: RepoIndex):
         "var-020": {
             "intake": intake(kind="question", summary="How to export or back up personal data",
                              symptoms=[], user_terms=["export data backup"], dev_terms=["export", "backup"]),
+            # a how-to, not someone checking whether a fix shipped
+            "lookup_triage": {"is_status_query": False, "subject": ""},
             "reply": "Thanks for asking! Right now Ritmo can share a weekly summary image, but there's no full data export yet — it's on our list and requests like yours push it up. We've noted yours. — The Ritmo team",
         },
         "var-021": {
@@ -309,6 +311,17 @@ def build_cases(index: RepoIndex):
                                       ASK_VERSION_EN],
                              user_terms=["app is bad"], dev_terms=[]),
             "reply": "Sorry to hear that — and thanks for telling us. Could you share what changed for you: is something failing, slower, or harder to use since an update? And which version are you on (Settings > About)? We read every one of these. — The Ritmo team",
+        },
+        # a support agent checking the change history before answering someone.
+        # No reply is authored: a lookup has nobody waiting on one, and the
+        # pipeline must not ask for a draft it would have no recipient for.
+        "var-026": {
+            "intake": intake(kind="question", summary="Asking whether the duplicate morning reminder was fixed",
+                             symptoms=[], user_terms=["duplicate reminder"],
+                             dev_terms=["notification", "reminder", "duplicate", "schedule"]),
+            "lookup_triage": {"is_status_query": True,
+                              "subject": "the same daily reminder notification arrives twice"},
+            "adjudicate": A(NOTIF, 0.91, R_NOTIF, "duplicate reminder notifications"),
         },
     }
 

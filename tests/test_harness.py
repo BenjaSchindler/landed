@@ -432,6 +432,84 @@ def run_pipeline(llm, index=INDEX):
     return Pipeline(index, llm).analyze(item)
 
 
+class TestLookupMode(unittest.TestCase):
+    """"Is X fixed?" is the question on the tin, and it used to skip retrieval.
+
+    A support agent checking before they answer someone writes a question, and
+    intake classifies questions as non-bugs — so the tool routed the one thing
+    it exists to answer straight to not_a_bug without searching anything.
+    """
+
+    @staticmethod
+    def triage(is_status_query, subject="the order PDF preview renders blank"):
+        return {"is_status_query": is_status_query, "subject": subject}
+
+    @staticmethod
+    def question_intake():
+        # what intake really returns for a question: no symptoms to search on
+        return make_intake(kind="question", version=None).model_dump() | {"symptoms": []}
+
+    def test_a_status_query_gets_searched_instead_of_dismissed(self):
+        llm = ScriptedLLM(structured=[self.question_intake(),
+                                      self.triage(True),
+                                      adj().model_dump()])
+        result = run_pipeline(llm)
+        self.assertTrue(result.is_lookup)
+        self.assertEqual(result.verdict.verdict, Verdict.ALREADY_FIXED)
+        self.assertIn("lookup_triage", llm.calls)
+        self.assertIn("adjudicate", llm.calls)
+
+    def test_a_how_to_question_is_still_not_a_bug(self):
+        llm = ScriptedLLM(structured=[self.question_intake(), self.triage(False, "")])
+        result = run_pipeline(llm)
+        self.assertFalse(result.is_lookup)
+        self.assertEqual(result.verdict.verdict, Verdict.NOT_A_BUG)
+        self.assertNotIn("adjudicate", llm.calls)
+
+    def test_no_reply_is_drafted_for_someone_who_is_not_waiting(self):
+        llm = ScriptedLLM(structured=[self.question_intake(), self.triage(True),
+                                      adj().model_dump()],
+                          text=["should never be asked for"])
+        result = run_pipeline(llm)
+        self.assertIsNone(result.reply_draft)
+        self.assertFalse(result.reply_is_fallback)
+        self.assertNotIn("reply", llm.calls)
+
+    def test_a_lookup_never_asks_which_version_the_asker_is_on(self):
+        llm = ScriptedLLM(structured=[self.question_intake(), self.triage(True),
+                                      adj().model_dump()])
+        v = run_pipeline(llm).verdict
+        self.assertFalse(v.version_unknown)
+        self.assertIsNone(v.reporter_version)
+        self.assertIn("or newer", v.reasoning)
+
+    def test_the_restated_subject_becomes_what_retrieval_searches_for(self):
+        llm = ScriptedLLM(structured=[self.question_intake(),
+                                      self.triage(True, "streak counter overlaps the header"),
+                                      adj().model_dump()])
+        result = run_pipeline(llm)
+        self.assertEqual(result.intake.symptoms, ["streak counter overlaps the header"])
+
+    def test_triage_failure_falls_back_to_the_old_routing(self):
+        # a missing fixture or a dead API must not turn a question into a claim
+        class DeadOnTriage(ScriptedLLM):
+            def structured(self, name, system, user, model_cls, **kw):
+                if name == "lookup_triage":
+                    self.calls.append(name)
+                    raise LLMUnavailable("no fixture")
+                return super().structured(name, system, user, model_cls, **kw)
+
+        llm = DeadOnTriage(structured=[self.question_intake()])
+        result = run_pipeline(llm)
+        self.assertEqual(result.verdict.verdict, Verdict.NOT_A_BUG)
+        self.assertFalse(result.is_lookup)
+
+    def test_ordinary_bug_reports_never_pay_for_the_extra_call(self):
+        llm = ScriptedLLM(structured=[make_intake().model_dump(), adj().model_dump()])
+        run_pipeline(llm)
+        self.assertNotIn("lookup_triage", llm.calls)
+
+
 class TestPipelineGuardrails(unittest.TestCase):
     def test_invalid_citation_gets_one_retry_then_succeeds(self):
         llm = ScriptedLLM(structured=[

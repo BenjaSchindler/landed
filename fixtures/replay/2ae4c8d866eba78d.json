@@ -1,0 +1,10 @@
+{
+ "name": "lookup_triage",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "is_status_query": true,
+  "subject": "the morning reminder notification is sent twice"
+ }
+}

@@ -32,6 +32,11 @@ class IntakeResult(BaseModel):
     search_terms: SearchTerms
 
 
+class LookupTriage(BaseModel):
+    is_status_query: bool = Field(description="True if the writer is asking whether a specific problem has ALREADY been fixed. False for how-do-I questions, feature requests, or anything else.")
+    subject: str = Field(description="The problem being asked about, restated in English as an observable symptom, e.g. 'the order PDF preview renders blank'")
+
+
 class Adjudication(BaseModel):
     match_sha: Optional[str] = Field(description="Full sha of the ONE candidate that fixes the reported symptom, or null if none does")
     confidence: float = Field(description="0.0-1.0: how confident that the matched change fixes this exact symptom; 0.0 when match_sha is null")
@@ -99,6 +104,7 @@ class AnalysisResult(BaseModel):
     candidates: list[Candidate] = []
     adjudication: Optional[Adjudication] = None
     verdict: VerdictResult
+    is_lookup: bool = False                  # a "has this been fixed?" query, not a user's report
     reply_draft: Optional[str] = None
     reply_is_fallback: bool = False          # True when the templated fallback replaced a rejected LLM draft
     escalation_packet: Optional[str] = None  # markdown handoff for engineering

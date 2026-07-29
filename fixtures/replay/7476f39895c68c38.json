@@ -1,0 +1,33 @@
+{
+ "name": "intake",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "kind": "question",
+  "summary": "User asks whether the duplicate morning reminder notification was ever fixed.",
+  "symptoms": [
+   "Morning reminder notification appears twice."
+  ],
+  "app_version": null,
+  "platform": "unknown",
+  "language": "en",
+  "specific_enough": true,
+  "missing_info": [],
+  "search_terms": {
+   "user_terms": [
+    "duplicate morning reminder notification",
+    "morning reminder notification"
+   ],
+   "dev_terms": [
+    "fix duplicate morning reminder",
+    "deduplicate notification scheduling",
+    "prevent duplicate reminders",
+    "notification scheduler",
+    "morning reminder",
+    "cancel existing notification",
+    "reschedule reminders"
+   ]
+  }
+ }
+}

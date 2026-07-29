@@ -41,6 +41,30 @@ def intake_prompt(text: str, channel: str, continuous: bool = False) -> tuple[st
     return system, user
 
 
+LOOKUP_SYSTEM = """You sort one message into two kinds of question.
+
+A STATUS QUERY asks whether a specific problem has already been fixed — usually
+written by a support agent checking before they answer someone. "Is the blank
+PDF fixed?", "did we ship the login timeout fix?", "¿ya arreglaron el menú
+mobile?". These are answerable from the change history.
+
+Anything else is NOT a status query: how-do-I questions ("how can I export my
+data?"), feature requests, complaints, praise, or a bare description of a
+problem with no question about its status.
+
+The distinction is whether they are asking about the STATE OF A FIX, not merely
+whether the message mentions something broken.
+
+subject: restate the problem as an observable symptom in English, the way a user
+would experience it, so it can be matched against commit messages. If it is not
+a status query, put an empty string."""
+
+
+def lookup_prompt(text: str, summary: str) -> tuple[str, str]:
+    user = f"Message:\n<<<\n{text}\n>>>\n\nNormalized as: {summary}"
+    return LOOKUP_SYSTEM, user
+
+
 ADJUDICATE_SYSTEM = """You decide whether one of the listed code changes fixes a user-reported symptom.
 
 Hard rules:

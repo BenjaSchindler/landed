@@ -340,6 +340,11 @@ function analyze(item) {
     es.addEventListener("adjudicate", () => advance("adjudicate"));
     es.addEventListener("verdict", () => advance("verdict"));
     es.addEventListener("reply", () => advance("reply"));
+    es.addEventListener("lookup", e => {
+      // no reporter is waiting on this one, so stop promising them a reply
+      const li = document.querySelector('#st-reply .label');
+      if (li) li.textContent = "Answering the question";
+    });
     es.addEventListener("pipeline_error", e => { friendlyErr = JSON.parse(e.data).message; });
     es.addEventListener("done", e => {
       STAGES.forEach(([k]) => mark(k, "done"));
@@ -387,7 +392,7 @@ function renderResult(r, friendlyErr) {
 
   let html = `
     <div class="card">
-      <h3>Verdict</h3>
+      <h3>Verdict${r.is_lookup ? ` <span class="aside">answering a question — no reply drafted</span>` : ""}</h3>
       <div class="verdict-head">
         <span class="chip big c-${v.verdict}">${VERDICT_LABEL[v.verdict]}</span>${conf}
       </div>

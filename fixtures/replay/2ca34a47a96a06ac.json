@@ -1,0 +1,12 @@
+{
+ "name": "adjudicate",
+ "kind": "structured",
+ "model": "gpt-5.5",
+ "authored": false,
+ "output": {
+  "match_sha": "8171f42045855e31f6542e5f20dd4eb0a082ccb9",
+  "confidence": 0.98,
+  "reasoning": "A notifications fix explicitly says duplicate daily reminders were queued on every app open, causing users to receive the same reminder two or more times. It cancels pending reminders before scheduling the next one, which directly addresses the morning reminder being sent twice.",
+  "symptom_addressed": "the morning reminder notification is sent twice"
+ }
+}

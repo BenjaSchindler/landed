@@ -23,3 +23,4 @@
 {"id": "var-023", "channel": "email", "text": "escribo mis reflexiones en un ejercicio, me llega una llamada, y chao, se borró todo lo que escribí. qué rabia. tengo la 1.2.0", "gold": {"verdict": "regression", "fixed_in": "1.1.0"}}
 {"id": "var-024", "channel": "in-app feedback", "text": "could you add a tablet layout? everything looks stretched out on my iPad", "gold": {"verdict": "not_a_bug"}}
 {"id": "var-025", "channel": "email", "text": "the app is bad now", "gold": {"verdict": "needs_info"}}
+{"id": "var-026", "channel": "pasted", "text": "quick check before I reply to someone — did we ever fix the duplicate morning reminder notification?", "gold": {"verdict": "already_fixed", "fixed_in": "1.1.0"}}

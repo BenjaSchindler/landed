@@ -23,10 +23,10 @@ from typing import Iterator
 
 from .indexer import RepoIndex, semver_key
 from .llm import LLM, LLMBadOutput, LLMUnavailable, ReplayMiss
-from .prompts import adjudicate_prompt, intake_prompt, reply_prompt
+from .prompts import adjudicate_prompt, intake_prompt, lookup_prompt, reply_prompt
 from .schemas import (
     Adjudication, AnalysisResult, Candidate, FeedbackItem, IntakeResult,
-    Release, Verdict, VerdictResult,
+    LookupTriage, Release, Verdict, VerdictResult,
 )
 
 CONF_FIXED = 0.70      # at or above: safe to tell the user it is fixed
@@ -104,12 +104,20 @@ class Pipeline:
                           "language": intake.language, "app_version": intake.app_version})
 
         # 2. route non-bugs and unsearchable reports — no retrieval needed
+        lookup = False
         if intake.kind != "bug":
-            verdict = VerdictResult(verdict=Verdict.NOT_A_BUG,
-                                    reasoning=f"This is a {intake.kind.replace('_', ' ')}, not a bug report.")
-            yield from self._finish(item, intake, [], None, verdict)
-            return
-        if not intake.specific_enough:
+            triage = self._lookup_triage(item, intake) if intake.kind == "question" else None
+            if triage is None or not triage.is_status_query:
+                verdict = VerdictResult(verdict=Verdict.NOT_A_BUG,
+                                        reasoning=f"This is a {intake.kind.replace('_', ' ')}, not a bug report.")
+                yield from self._finish(item, intake, [], None, verdict)
+                return
+            # the asker described a state, not a symptom; intake left symptoms
+            # empty, so the restated subject is what retrieval has to work with
+            lookup = True
+            intake = intake.model_copy(update={"symptoms": [triage.subject]})
+            yield ("lookup", {"subject": triage.subject})
+        if not lookup and not intake.specific_enough:
             verdict = VerdictResult(
                 verdict=Verdict.NEEDS_INFO,
                 version_unknown=not self.continuous and intake.app_version is None,
@@ -137,20 +145,40 @@ class Pipeline:
         # which is what a support agent pasting fresh feedback means.
         reported_at = item.received_at or datetime.now(timezone.utc).isoformat()
         verdict = compute_verdict(intake, adjudication, self.index,
-                                  self.deploy_model, reported_at)
+                                  self.deploy_model, reported_at, lookup)
         yield ("verdict", {"verdict": verdict.verdict.value, "reasoning": verdict.reasoning})
 
-        yield from self._finish(item, intake, candidates, adjudication, verdict)
+        yield from self._finish(item, intake, candidates, adjudication, verdict, lookup)
 
-    def _finish(self, item, intake, candidates, adjudication, verdict) -> Iterator[tuple[str, object]]:
+    def _finish(self, item, intake, candidates, adjudication, verdict,
+                lookup: bool = False) -> Iterator[tuple[str, object]]:
         result = AnalysisResult(item=item, intake=intake, candidates=candidates,
-                                adjudication=adjudication, verdict=verdict)
-        result.reply_draft, result.reply_is_fallback = self._draft_reply(item, intake, verdict)
+                                adjudication=adjudication, verdict=verdict, is_lookup=lookup)
+        # a lookup has no reporter waiting on an answer — drafting one would
+        # invent a recipient, and the verdict is already the whole answer
+        if not lookup:
+            result.reply_draft, result.reply_is_fallback = self._draft_reply(item, intake, verdict)
         if verdict.verdict in (Verdict.REGRESSION_SUSPECTED, Verdict.NOT_FIXED,
                                Verdict.UNCERTAIN, Verdict.FAILED):
             result.escalation_packet = build_packet(result)
-        yield ("reply", {"fallback": result.reply_is_fallback})
+        yield ("reply", {"fallback": result.reply_is_fallback, "skipped": lookup})
         yield ("done", result)
+
+    def _lookup_triage(self, item: FeedbackItem, intake: IntakeResult):
+        """Is this someone asking whether a fix shipped, or a user asking how to?
+
+        Both arrive as kind="question" and are structurally identical — same
+        empty symptoms, same populated search terms — so the difference has to
+        be read semantically. Its own call, so the feedback-triage prompt stays
+        byte-identical and keeps its recordings; any failure falls through to
+        the old not_a_bug routing, which claims nothing.
+        """
+        system, user = lookup_prompt(item.text, intake.summary)
+        try:
+            return self.llm.structured("lookup_triage", system, user, LookupTriage,
+                                       max_tokens=2048)
+        except (LLMUnavailable, LLMBadOutput, ReplayMiss):
+            return None
 
     # ------------------------------------------------------------ subroutines
 
@@ -198,7 +226,7 @@ class Pipeline:
 
 def compute_verdict(intake: IntakeResult, adjudication: Adjudication | None,
                     index: RepoIndex, deploy_model: str = DEPLOY_TAGS,
-                    reported_at: str | None = None) -> VerdictResult:
+                    reported_at: str | None = None, lookup: bool = False) -> VerdictResult:
     """Where 'fixed' actually gets decided. No model calls — arithmetic only.
 
     Which arithmetic depends on how the product ships: semver against a release
@@ -208,8 +236,9 @@ def compute_verdict(intake: IntakeResult, adjudication: Adjudication | None,
     continuous = deploy_model == DEPLOY_CONTINUOUS
     reporter_version = intake.app_version
     # a continuously deployed product has no version for the reporter to read
-    # off a settings screen, so never let a verdict ask them for one
-    base = (dict(reporter_version=None, version_unknown=False) if continuous else
+    # off a settings screen, and a lookup has no reporter at all — neither may
+    # produce a verdict that asks someone which version they are on
+    base = (dict(reporter_version=None, version_unknown=False) if (continuous or lookup) else
             dict(reporter_version=reporter_version, version_unknown=reporter_version is None))
 
     if adjudication is None or adjudication.match_sha is None or adjudication.confidence < CONF_MENTION:
@@ -247,6 +276,13 @@ def compute_verdict(intake: IntakeResult, adjudication: Adjudication | None,
                       f"which is not in users' hands yet ({release.status}{eta}).")
 
     # fix is in a released version
+    if lookup:
+        released = f", released {release.released_at}" if release.released_at else ""
+        return VerdictResult(
+            verdict=Verdict.ALREADY_FIXED, fix_commit=commit, fix_release=release,
+            confidence=conf, **base,
+            reasoning=f"Fixed on {commit.date[:10]} ({adjudication.reasoning}) and shipped in "
+                      f"v{release.version}{released} — anyone on that version or newer has it.")
     if reporter_version is None:
         return VerdictResult(
             verdict=Verdict.ALREADY_FIXED, fix_commit=commit, fix_release=release,
