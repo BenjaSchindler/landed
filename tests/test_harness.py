@@ -215,20 +215,20 @@ class TestContinuousDelivery(unittest.TestCase):
 
     def test_a_fix_stuck_on_pre_production_is_not_in_anyone_s_hands(self):
         # this is the bug the branch work exists to kill: the fix exists, but on
-        # red-blanca, so telling the reporter to reload would be a false claim
-        v = self.verdict(self.LONG_AFTER, stage="red-blanca", branches=("main", "red-blanca"))
+        # staging, so telling the reporter to reload would be a false claim
+        v = self.verdict(self.LONG_AFTER, stage="staging", branches=("main", "staging"))
         self.assertEqual(v.verdict, Verdict.FIX_COMING)
-        self.assertIn("red-blanca", v.reasoning)
+        self.assertIn("staging", v.reasoning)
         self.assertIn("main", v.reasoning)
         self.assertIsNone(v.deployed_at)   # nothing was deployed, so claim no date
 
     def test_reaching_the_live_branch_is_what_counts_as_shipped(self):
-        v = self.verdict(self.BEFORE, stage="main", branches=("main", "red-blanca"))
+        v = self.verdict(self.BEFORE, stage="main", branches=("main", "staging"))
         self.assertEqual(v.verdict, Verdict.ALREADY_FIXED)
         self.assertEqual(v.deployed_at, "2026-04-22")
 
     def test_the_live_branch_still_regresses_on_dates(self):
-        v = self.verdict(self.LONG_AFTER, stage="main", branches=("main", "red-blanca"))
+        v = self.verdict(self.LONG_AFTER, stage="main", branches=("main", "staging"))
         self.assertEqual(v.verdict, Verdict.REGRESSION_SUSPECTED)
 
     def test_continuous_support_leaves_the_app_store_prompt_byte_identical(self):
@@ -329,17 +329,17 @@ class TestSourceResolution(unittest.TestCase):
         # the inbox used to announce "Ritmo support inbox" over another repo's
         # commits and sign every draft "— The Ritmo team"
         from harness.server import product_name
-        self.assertEqual(product_name({}, "/srv/doctor911-site-2.0"), "doctor911-site-2.0")
+        self.assertEqual(product_name({}, "/srv/acme-site-2.0"), "acme-site-2.0")
         self.assertEqual(
-            product_name({"LANDED_PRODUCT": "Doctor911"}, "/srv/doctor911-site-2.0"), "Doctor911")
+            product_name({"LANDED_PRODUCT": "Acme"}, "/srv/acme-site-2.0"), "Acme")
 
     def test_continuous_refuses_to_guess_which_branch_is_deployed(self):
         from harness.server import resolve_branches
         with self.assertRaises(RuntimeError):
             resolve_branches({}, "continuous")
         self.assertEqual(
-            resolve_branches({"LANDED_BRANCHES": "main, red-blanca"}, "continuous"),
-            ["main", "red-blanca"])
+            resolve_branches({"LANDED_BRANCHES": "main, staging"}, "continuous"),
+            ["main", "staging"])
 
     def test_tagged_products_may_leave_branches_unset(self):
         from harness.server import resolve_branches
