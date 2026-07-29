@@ -9,6 +9,7 @@ import json
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Callable, Mapping
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
@@ -33,10 +34,27 @@ def _ensure_demo_repo() -> Path:
     return repo
 
 
+def resolve_sources(env: Mapping[str, str],
+                    demo_repo: Callable[[], str]) -> tuple[str, str | None]:
+    """Pick the repo to index and the manifest that describes its releases.
+
+    The demo manifest belongs to the demo repo only. Handing it to a foreign
+    repo would check that repo's real tags against Ritmo's versions: every
+    release_for() lookup misses, so compute_verdict() sees status "internal"
+    and every verdict collapses to fix_coming — already_fixed and regression
+    become unreachable. A foreign repo without an explicit LANDED_RELEASES
+    gets None, which is RepoIndex's cue to treat git tags as released.
+    """
+    repo = env.get("LANDED_REPO")
+    if repo:
+        return repo, env.get("LANDED_RELEASES")
+    # demo repo generation is lazy: pointing at your own repo must not build Ritmo
+    return demo_repo(), env.get("LANDED_RELEASES") or str(DEMO / "releases.json")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    repo_path = os.environ.get("LANDED_REPO") or str(_ensure_demo_repo())
-    releases = os.environ.get("LANDED_RELEASES") or str(DEMO / "releases.json")
+    repo_path, releases = resolve_sources(os.environ, lambda: str(_ensure_demo_repo()))
     index = RepoIndex(repo_path, releases)
     llm = LLM()
     app.state.pipeline = Pipeline(index, llm)

@@ -184,6 +184,43 @@ class TestReplyGuardrail(unittest.TestCase):
         self.assertIn("Which version are you on?", text)
 
 
+class TestSourceResolution(unittest.TestCase):
+    """Which repo gets checked against which release manifest.
+
+    Pointing at a foreign repo while silently keeping the demo's manifest made
+    every real version unknown to release_for(), so no verdict could ever reach
+    already_fixed or regression — the distinction the tool exists to make.
+    """
+
+    def setUp(self):
+        from harness.server import resolve_sources
+        self.resolve = resolve_sources
+        self.demo_calls = []
+
+    def demo(self):
+        self.demo_calls.append(1)
+        return "/demo/app-repo"
+
+    def test_foreign_repo_without_manifest_falls_back_to_git_tags(self):
+        repo, releases = self.resolve({"LANDED_REPO": "/my/repo"}, self.demo)
+        self.assertEqual(repo, "/my/repo")
+        self.assertIsNone(releases)  # None => RepoIndex treats every tag as released
+
+    def test_foreign_repo_keeps_an_explicit_manifest(self):
+        repo, releases = self.resolve(
+            {"LANDED_REPO": "/my/repo", "LANDED_RELEASES": "/my/releases.json"}, self.demo)
+        self.assertEqual((repo, releases), ("/my/repo", "/my/releases.json"))
+
+    def test_demo_repo_still_gets_the_demo_manifest(self):
+        repo, releases = self.resolve({}, self.demo)
+        self.assertEqual(repo, "/demo/app-repo")
+        self.assertTrue(releases.endswith("releases.json"))
+
+    def test_demo_repo_is_not_generated_when_pointing_elsewhere(self):
+        self.resolve({"LANDED_REPO": "/my/repo"}, self.demo)
+        self.assertEqual(self.demo_calls, [])
+
+
 class ScriptedLLM:
     """Returns queued outputs; raises for the reply so the fallback path is exercised
     deterministically unless text outputs are provided."""
