@@ -50,9 +50,11 @@ def _key(name: str, system: str, user: str) -> str:
 
 
 class LLM:
-    def __init__(self, mode: str | None = None):
+    def __init__(self, mode: str | None = None, verify: bool = True):
         self.record = os.environ.get("LANDED_RECORD") == "1"
         self.client = None
+        # None once the credentials are known to work; a short reason otherwise
+        self.credential_error: str | None = None
         if mode:
             self.mode = mode
         elif os.environ.get("LANDED_REPLAY") == "1" and not self.record:
@@ -61,6 +63,25 @@ class LLM:
             self.mode = "live" if self._try_client() else "replay"
         if self.mode == "live" and self.client is None and not self._try_client():
             raise LLMUnavailable("live mode requested but no OpenAI credentials resolve")
+        if self.mode == "live" and verify and self.client is not None:
+            self.credential_error = self._verify()
+
+    def _verify(self) -> str | None:
+        """Probe the credentials before anything reports itself as running live.
+
+        _try_client() only proves a key is *present*: a revoked or mistyped one
+        builds a client just fine, so the header badge read a healthy "live"
+        while every call came back 401. One cheap listing call turns that into
+        a state the UI can show honestly.
+        """
+        import openai
+        try:
+            self.client.models.list()
+        except openai.AuthenticationError:
+            return "invalid API key"
+        except (openai.APIConnectionError, openai.APIStatusError) as e:
+            return type(e).__name__
+        return None
 
     def _try_client(self) -> bool:
         try:

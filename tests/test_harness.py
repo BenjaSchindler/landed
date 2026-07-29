@@ -221,6 +221,59 @@ class TestSourceResolution(unittest.TestCase):
         self.assertEqual(self.demo_calls, [])
 
 
+class TestCredentialVerification(unittest.TestCase):
+    """A key that merely exists must not be reported as a working "live" mode.
+
+    _try_client() builds a client for any non-empty key, so a revoked one used
+    to show a healthy green badge over an inbox where every item failed.
+    """
+
+    @staticmethod
+    def _client(exc=None):
+        class Models:
+            def list(self):
+                if exc:
+                    raise exc
+                return ["gpt-5.5"]
+
+        class Client:
+            models = Models()
+
+        return Client()
+
+    @staticmethod
+    def _openai_error(cls):
+        import httpx
+        return cls("boom", response=httpx.Response(
+            401, request=httpx.Request("GET", "http://x")), body=None)
+
+    def test_working_key_reports_no_error(self):
+        from harness.llm import LLM
+        llm = LLM(mode="replay")          # constructed without touching the network
+        llm.client = self._client()
+        self.assertIsNone(llm._verify())
+
+    def test_revoked_key_is_named_not_swallowed(self):
+        import openai
+        from harness.llm import LLM
+        llm = LLM(mode="replay")
+        llm.client = self._client(self._openai_error(openai.AuthenticationError))
+        self.assertEqual(llm._verify(), "invalid API key")
+
+    def test_transport_failure_is_reported_too(self):
+        import openai
+        from harness.llm import LLM
+        llm = LLM(mode="replay")
+        llm.client = self._client(openai.APIConnectionError(request=None))
+        self.assertEqual(llm._verify(), "APIConnectionError")
+
+    def test_replay_mode_never_probes(self):
+        from harness.llm import LLM
+        llm = LLM(mode="replay")
+        self.assertIsNone(llm.credential_error)
+        self.assertIsNone(llm.client)
+
+
 class ScriptedLLM:
     """Returns queued outputs; raises for the reply so the fallback path is exercised
     deterministically unless text outputs are provided."""

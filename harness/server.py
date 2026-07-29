@@ -59,6 +59,7 @@ async def lifespan(app: FastAPI):
     llm = LLM()
     app.state.pipeline = Pipeline(index, llm)
     app.state.mode = llm.mode
+    app.state.credential_error = llm.credential_error
     app.state.items = {}
     app.state.results = {}
     for raw in json.loads((DEMO / "seed_feedback.json").read_text()):
@@ -81,6 +82,7 @@ def meta():
     return {
         "mode": app.state.mode,
         "model": DEFAULT_MODEL if app.state.mode == "live" else None,
+        "credential_error": app.state.credential_error,
         "commits": len(pipeline.index.commits),
         "releases": [r.model_dump() for r in pipeline.index.releases],
     }

@@ -32,6 +32,7 @@
   #mode { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--gray);
           background: var(--gray-bg); padding: 4px 12px; border-radius: 999px; }
   #mode.live { color: var(--green); background: var(--green-bg); }
+  #mode.broken { color: var(--red); background: var(--red-bg); }
 
   main { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 20px;
          padding: 20px 24px; max-width: 1320px; margin: 0 auto; align-items: start; }
@@ -205,10 +206,16 @@ let items = [], selected = null, analyzing = null, analyzingId = null, finishPen
 async function boot() {
   const meta = await (await fetch("/api/meta")).json();
   const modeEl = document.getElementById("mode");
-  modeEl.textContent = meta.mode === "live"
-    ? `live · ${meta.model} · ${meta.commits} changes indexed`
-    : `demo replay · ${meta.commits} changes indexed`;
-  modeEl.classList.toggle("live", meta.mode === "live");
+  // a key that is merely present is not a working one — say so rather than
+  // showing a healthy "live" badge over an inbox where every item will fail
+  const credsBroken = meta.mode === "live" && meta.credential_error;
+  modeEl.textContent = meta.mode !== "live"
+    ? `demo replay · ${meta.commits} changes indexed`
+    : credsBroken
+      ? `credentials failed · ${meta.credential_error} · analysis unavailable`
+      : `live · ${meta.model} · ${meta.commits} changes indexed`;
+  modeEl.classList.toggle("live", meta.mode === "live" && !credsBroken);
+  modeEl.classList.toggle("broken", !!credsBroken);
   await refreshList();
   const want = new URLSearchParams(location.search).get("item");
   if (want && items.some(i => i.id === want)) select(want);
