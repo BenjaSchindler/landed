@@ -52,16 +52,37 @@ def resolve_sources(env: Mapping[str, str],
     return demo_repo(), env.get("LANDED_RELEASES") or str(DEMO / "releases.json")
 
 
+def product_name(env: Mapping[str, str], repo_path: str) -> str:
+    """What to call the product being supported, for the header and the sign-off.
+
+    The demo carries a brand its directory name doesn't ("Ritmo" lives in
+    demo/app-repo); every other repo is named by its directory until someone
+    says otherwise with LANDED_PRODUCT. Without this the inbox greets a
+    foreign repo as Ritmo and signs its replies "The Ritmo team".
+    """
+    explicit = env.get("LANDED_PRODUCT")
+    if explicit:
+        return explicit
+    repo = Path(repo_path)
+    if repo.resolve() == (DEMO / "app-repo").resolve():
+        return "Ritmo"
+    return repo.name
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     repo_path, releases = resolve_sources(os.environ, lambda: str(_ensure_demo_repo()))
     index = RepoIndex(repo_path, releases)
     llm = LLM()
     deploy_model = os.environ.get("LANDED_DEPLOY_MODEL", DEPLOY_TAGS)
-    app.state.pipeline = Pipeline(index, llm, deploy_model=deploy_model)
+    product = product_name(os.environ, repo_path)
+    app.state.pipeline = Pipeline(index, llm, team_signature=f"The {product} team",
+                                  deploy_model=deploy_model)
     app.state.mode = llm.mode
     app.state.deploy_model = deploy_model
     app.state.credential_error = llm.credential_error
+    app.state.product = product
+    app.state.repo = {"name": Path(repo_path).name, "path": str(Path(repo_path).resolve())}
     app.state.items = {}
     app.state.results = {}
     for raw in json.loads((DEMO / "seed_feedback.json").read_text()):
@@ -86,6 +107,8 @@ def meta():
         "model": DEFAULT_MODEL if app.state.mode == "live" else None,
         "credential_error": app.state.credential_error,
         "deploy_model": app.state.deploy_model,
+        "product": app.state.product,
+        "repo": app.state.repo,
         "commits": len(pipeline.index.commits),
         "releases": [r.model_dump() for r in pipeline.index.releases],
     }

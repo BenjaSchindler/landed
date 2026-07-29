@@ -305,6 +305,19 @@ class TestSourceResolution(unittest.TestCase):
         self.resolve({"LANDED_REPO": "/my/repo"}, self.demo)
         self.assertEqual(self.demo_calls, [])
 
+    def test_a_foreign_repo_is_never_greeted_or_signed_as_ritmo(self):
+        # the header and the reply sign-off both read this: pointed elsewhere,
+        # the inbox used to announce "Ritmo support inbox" over another repo's
+        # commits and sign every draft "— The Ritmo team"
+        from harness.server import product_name
+        self.assertEqual(product_name({}, "/srv/doctor911-site-2.0"), "doctor911-site-2.0")
+        self.assertEqual(
+            product_name({"LANDED_PRODUCT": "Doctor911"}, "/srv/doctor911-site-2.0"), "Doctor911")
+
+    def test_the_demo_keeps_its_brand(self):
+        from harness.server import DEMO, product_name
+        self.assertEqual(product_name({}, str(DEMO / "app-repo")), "Ritmo")
+
 
 class TestCredentialVerification(unittest.TestCase):
     """A key that merely exists must not be reported as a working "live" mode.

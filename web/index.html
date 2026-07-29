@@ -23,13 +23,21 @@
          -webkit-font-smoothing: antialiased; }
 
   header { display: flex; align-items: center; gap: 12px; padding: 13px 24px;
-           background: var(--panel); border-bottom: 1px solid var(--line); }
+           background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
   .brand { display: flex; align-items: center; gap: 10px; }
   .brand h1 { font-size: 18px; margin: 0; letter-spacing: -0.3px; font-weight: 700; }
   .brand svg { display: block; }
   header .sub { color: var(--muted); font-size: 13px; margin-left: 2px;
                 border-left: 1px solid var(--line); padding-left: 14px; }
-  #mode { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--gray);
+  /* nowrap keeps the repo and its delivery model on one line; the max-width and
+     ellipsis stop a long repo name from pushing the header wider than the page */
+  #repo { margin-left: auto; font-size: 12px; color: var(--muted); background: var(--gray-bg);
+          padding: 4px 12px; border-radius: 999px; white-space: nowrap;
+          max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace; cursor: default; }
+  #repo b { color: var(--ink); font-weight: 650; }
+  #repo .dm { color: var(--purple); font-weight: 650; }
+  #mode { font-size: 12px; font-weight: 600; color: var(--gray);
           background: var(--gray-bg); padding: 4px 12px; border-radius: 999px; }
   #mode.live { color: var(--green); background: var(--green-bg); }
   #mode.broken { color: var(--red); background: var(--red-bg); }
@@ -139,7 +147,8 @@
     </svg>
     <h1>Landed</h1>
   </div>
-  <span class="sub">Ritmo support inbox — is it fixed, and does <em>this</em> user have it?</span>
+  <span class="sub"><span id="product">…</span> support inbox — is it fixed, and does <em>this</em> user have it?</span>
+  <span id="repo"></span>
   <span id="mode"></span>
 </header>
 <main>
@@ -216,6 +225,16 @@ async function boot() {
       : `live · ${meta.model} · ${meta.commits} changes indexed`;
   modeEl.classList.toggle("live", meta.mode === "live" && !credsBroken);
   modeEl.classList.toggle("broken", !!credsBroken);
+
+  // which repo the verdicts are being read out of, and by which arithmetic —
+  // both are configurable, and neither is guessable from the inbox
+  document.getElementById("product").textContent = meta.product;
+  const repoEl = document.getElementById("repo");
+  const delivery = meta.deploy_model === "continuous" ? "continuous deploys" : "tagged releases";
+  repoEl.innerHTML = `<b></b> · <span class="dm"></span>`;
+  repoEl.querySelector("b").textContent = meta.repo.name;
+  repoEl.querySelector(".dm").textContent = delivery;
+  repoEl.title = meta.repo.path;
   await refreshList();
   const want = new URLSearchParams(location.search).get("item");
   if (want && items.some(i => i.id === want)) select(want);
