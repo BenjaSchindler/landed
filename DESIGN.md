@@ -238,8 +238,10 @@ hermetic unit suite.
 
 ## 6. Reflections
 
-**Time spent:** about a focused day, roughly half on the harness/evals and
-half on demo data, interface, and this write-up.
+**Time spent:** about eight hours, spread over a week in the slots I had.
+Roughly the first half went to the harness, demo data, evals, and interface;
+the rest went where the real-repo trial pushed — the continuous deploy model,
+branch handling, lookup — and this write-up.
 
 **Next with more time:** (1) grow the eval set from real (anonymized)
 feedback until the numbers stop being flattering — 25 cases is enough to
