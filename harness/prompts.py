@@ -27,9 +27,18 @@ Rules:
 - Do not diagnose or guess causes. You only structure what was reported."""
 
 
-def intake_prompt(text: str, channel: str) -> tuple[str, str]:
+CONTINUOUS_INTAKE_NOTE = """
+
+This product is delivered continuously on the web: there are no app versions,
+no builds and no store updates. Leave app_version null, and never put a
+question about versions, updating, or reinstalling into missing_info — ask
+about the browser, the page/URL, or what they were doing instead."""
+
+
+def intake_prompt(text: str, channel: str, continuous: bool = False) -> tuple[str, str]:
+    system = INTAKE_SYSTEM + (CONTINUOUS_INTAKE_NOTE if continuous else "")
     user = f"Channel: {channel}\nFeedback:\n<<<\n{text}\n>>>"
-    return INTAKE_SYSTEM, user
+    return system, user
 
 
 ADJUDICATE_SYSTEM = """You decide whether one of the listed code changes fixes a user-reported symptom.
@@ -80,9 +89,25 @@ Hard rules:
 - If facts.ask_version is true, ask which app version they use (Settings > About).
 - Sign off with: — {team_signature}"""
 
+# Appended only for continuously delivered products. Kept out of REPLY_SYSTEM so
+# the app-store prompt stays byte-identical: fixture keys hash the prompt, and
+# editing the shared text silently invalidates every recorded reply — the
+# keyless demo then falls back to templates and no eval notices, because the
+# eval grades verdicts, not drafts.
+CONTINUOUS_REPLY_NOTE = """
+
+This product is a website that ships on every deploy: there is nothing to
+install and no version to be on. Never mention app versions, updating,
+reinstalling, or app stores.
+- verdict already_fixed: the fix is live, so the action is to reload the page.
+- verdict regression: the fix is live and STILL not working for this person.
+  Never say it is resolved and never ask them to reload as if that settles it —
+  the fix landed on facts.deployed_at and the symptom outlived it. Say it is
+  being looked at with priority."""
+
 
 def reply_prompt(item_text: str, intake: IntakeResult, verdict: VerdictResult,
-                 team_signature: str) -> tuple[str, str]:
+                 team_signature: str, continuous: bool = False) -> tuple[str, str]:
     facts = {
         "verdict": verdict.verdict.value,
         "language": intake.language,
@@ -94,7 +119,13 @@ def reply_prompt(item_text: str, intake: IntakeResult, verdict: VerdictResult,
         "ask_version": verdict.version_unknown,
         "questions_to_ask": intake.missing_info,
     }
+    # appended, not interleaved: facts is serialized into the prompt, so adding a
+    # key for app-store products would rekey and orphan every recorded fixture
+    if continuous:
+        facts["deployed_at"] = verdict.deployed_at
     system = REPLY_SYSTEM.replace("{team_signature}", team_signature)
+    if continuous:
+        system += CONTINUOUS_REPLY_NOTE
     user = (
         f"Original message from the user:\n<<<\n{item_text}\n>>>\n\n"
         f"facts:\n{json.dumps(facts, ensure_ascii=False, indent=1)}\n\n"

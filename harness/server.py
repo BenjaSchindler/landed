@@ -17,7 +17,7 @@ from pydantic import BaseModel
 
 from .indexer import RepoIndex
 from .llm import DEFAULT_MODEL, LLM
-from .pipeline import Pipeline
+from .pipeline import DEPLOY_TAGS, Pipeline
 from .schemas import AnalysisResult, FeedbackItem
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -57,8 +57,10 @@ async def lifespan(app: FastAPI):
     repo_path, releases = resolve_sources(os.environ, lambda: str(_ensure_demo_repo()))
     index = RepoIndex(repo_path, releases)
     llm = LLM()
-    app.state.pipeline = Pipeline(index, llm)
+    deploy_model = os.environ.get("LANDED_DEPLOY_MODEL", DEPLOY_TAGS)
+    app.state.pipeline = Pipeline(index, llm, deploy_model=deploy_model)
     app.state.mode = llm.mode
+    app.state.deploy_model = deploy_model
     app.state.credential_error = llm.credential_error
     app.state.items = {}
     app.state.results = {}
@@ -83,6 +85,7 @@ def meta():
         "mode": app.state.mode,
         "model": DEFAULT_MODEL if app.state.mode == "live" else None,
         "credential_error": app.state.credential_error,
+        "deploy_model": app.state.deploy_model,
         "commits": len(pipeline.index.commits),
         "releases": [r.model_dump() for r in pipeline.index.releases],
     }

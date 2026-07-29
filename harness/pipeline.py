@@ -18,6 +18,7 @@ Guardrails, in order of importance:
 from __future__ import annotations
 
 import re
+from datetime import datetime, timezone
 from typing import Iterator
 
 from .indexer import RepoIndex, semver_key
@@ -32,6 +33,21 @@ CONF_FIXED = 0.70      # at or above: safe to tell the user it is fixed
 CONF_MENTION = 0.40    # between: surface the candidate to a human, claim nothing
 TOP_K = 12
 
+# How the product reaches its users. "tags" is the app-store model this was
+# built for: merged, then packaged, then reviewed, then installed. "continuous"
+# is the web model, where merging to the branch IS shipping — there are no
+# versions to compare, so the same question ("did the fix reach this person?")
+# is answered with dates instead of semver.
+DEPLOY_TAGS = "tags"
+DEPLOY_CONTINUOUS = "continuous"
+
+# On a continuous product a fix is live within minutes, but CDN caches, service
+# workers and already-open tabs delay it, and report timestamps carry timezone
+# slop. A report inside this window is treated as having crossed the deploy in
+# flight rather than as evidence the fix failed. Reasoned, not measured — the
+# same caveat DESIGN.md makes about the confidence thresholds.
+DEPLOY_GRACE_DAYS = 2
+
 # optional "v" prefix must be consumed: in "v1.1.0" there is no \b between "v"
 # and "1", so a bare \d pattern would match the inner "1.0" and misread the
 # version (found by the live eval run — a valid draft was wrongly rejected).
@@ -40,10 +56,16 @@ _VERSION_RE = re.compile(r"\bv?(\d+\.\d+(?:\.\d+)?)\b", re.IGNORECASE)
 
 class Pipeline:
     def __init__(self, index: RepoIndex, llm: LLM,
-                 team_signature: str = "The Ritmo team"):
+                 team_signature: str = "The Ritmo team",
+                 deploy_model: str = DEPLOY_TAGS):
         self.index = index
         self.llm = llm
         self.team_signature = team_signature
+        self.deploy_model = deploy_model
+
+    @property
+    def continuous(self) -> bool:
+        return self.deploy_model == DEPLOY_CONTINUOUS
 
     # ------------------------------------------------------------------ api
 
@@ -76,7 +98,7 @@ class Pipeline:
 
     def _run(self, item: FeedbackItem) -> Iterator[tuple[str, object]]:
         # 1. intake: normalize + expand
-        system, user = intake_prompt(item.text, item.channel)
+        system, user = intake_prompt(item.text, item.channel, self.continuous)
         intake = self.llm.structured("intake", system, user, IntakeResult, max_tokens=2048)
         yield ("intake", {"summary": intake.summary, "kind": intake.kind,
                           "language": intake.language, "app_version": intake.app_version})
@@ -88,8 +110,10 @@ class Pipeline:
             yield from self._finish(item, intake, [], None, verdict)
             return
         if not intake.specific_enough:
-            verdict = VerdictResult(verdict=Verdict.NEEDS_INFO, version_unknown=intake.app_version is None,
-                                    reasoning="Too vague to search the change history; ask the questions below first.")
+            verdict = VerdictResult(
+                verdict=Verdict.NEEDS_INFO,
+                version_unknown=not self.continuous and intake.app_version is None,
+                reasoning="Too vague to search the change history; ask the questions below first.")
             yield from self._finish(item, intake, [], None, verdict)
             return
 
@@ -108,8 +132,12 @@ class Pipeline:
                                   "confidence": adjudication.confidence,
                                   "reasoning": adjudication.reasoning})
 
-        # 5. verdict: pure version arithmetic
-        verdict = compute_verdict(intake, adjudication, self.index)
+        # 5. verdict: pure arithmetic — semver, or deploy dates when continuous.
+        # A pasted item carries no timestamp; treat it as having arrived now,
+        # which is what a support agent pasting fresh feedback means.
+        reported_at = item.received_at or datetime.now(timezone.utc).isoformat()
+        verdict = compute_verdict(intake, adjudication, self.index,
+                                  self.deploy_model, reported_at)
         yield ("verdict", {"verdict": verdict.verdict.value, "reasoning": verdict.reasoning})
 
         yield from self._finish(item, intake, candidates, adjudication, verdict)
@@ -150,7 +178,8 @@ class Pipeline:
     def _draft_reply(self, item: FeedbackItem, intake: IntakeResult,
                      verdict: VerdictResult) -> tuple[str, bool]:
         allowed = version_allowlist(verdict)
-        system, user = reply_prompt(item.text, intake, verdict, self.team_signature)
+        system, user = reply_prompt(item.text, intake, verdict, self.team_signature,
+                                    self.continuous)
         try:
             draft = self.llm.text("reply", system, user, max_tokens=1024)
             if reply_versions_ok(draft, allowed):
@@ -162,16 +191,26 @@ class Pipeline:
                 return draft, False
         except (LLMUnavailable, LLMBadOutput, ReplayMiss):
             pass
-        return template_reply(intake, verdict, self.team_signature), True
+        return template_reply(intake, verdict, self.team_signature, self.deploy_model), True
 
 
 # ---------------------------------------------------------------- pure logic
 
 def compute_verdict(intake: IntakeResult, adjudication: Adjudication | None,
-                    index: RepoIndex) -> VerdictResult:
-    """Version arithmetic. No model calls — this is where 'fixed' actually gets decided."""
+                    index: RepoIndex, deploy_model: str = DEPLOY_TAGS,
+                    reported_at: str | None = None) -> VerdictResult:
+    """Where 'fixed' actually gets decided. No model calls — arithmetic only.
+
+    Which arithmetic depends on how the product ships: semver against a release
+    manifest for store-delivered apps, deploy dates for continuously deployed
+    ones. The gating above it (no match, weak match) is shared.
+    """
+    continuous = deploy_model == DEPLOY_CONTINUOUS
     reporter_version = intake.app_version
-    base = dict(reporter_version=reporter_version, version_unknown=reporter_version is None)
+    # a continuously deployed product has no version for the reporter to read
+    # off a settings screen, so never let a verdict ask them for one
+    base = (dict(reporter_version=None, version_unknown=False) if continuous else
+            dict(reporter_version=reporter_version, version_unknown=reporter_version is None))
 
     if adjudication is None or adjudication.match_sha is None or adjudication.confidence < CONF_MENTION:
         return VerdictResult(verdict=Verdict.NOT_FIXED, **base,
@@ -189,6 +228,9 @@ def compute_verdict(intake: IntakeResult, adjudication: Adjudication | None,
                       "— not confident enough to tell the user it is fixed.")
 
     conf = adjudication.confidence
+    if continuous:
+        return _continuous_verdict(commit, conf, base, reported_at, adjudication.reasoning)
+
     if commit.fixed_in is None:
         return VerdictResult(
             verdict=Verdict.FIX_COMING, fix_commit=commit, confidence=conf, **base,
@@ -222,6 +264,38 @@ def compute_verdict(intake: IntakeResult, adjudication: Adjudication | None,
         reasoning=f"The reporter runs v{reporter_version}, which already contains the "
                   f"v{release.version} fix for this symptom — either the fix did not work "
                   "or the bug returned. Engineering should see this.")
+
+
+def _continuous_verdict(commit, conf: float, base: dict, reported_at: str | None,
+                        why: str) -> VerdictResult:
+    """Merged is shipped, so the question becomes *when*, not *which version*.
+
+    A fix that went live before the reporter hit the symptom is the continuous
+    analogue of a reporter running a version that already contains the fix:
+    either it did not work or the bug came back. A fix that landed after they
+    wrote in is simply already fixed.
+    """
+    deployed_at = commit.date[:10]
+    deployed, reported = _parse_iso(commit.date), _parse_iso(reported_at)
+    if deployed and reported and (reported - deployed).days > DEPLOY_GRACE_DAYS:
+        return VerdictResult(
+            verdict=Verdict.REGRESSION_SUSPECTED, fix_commit=commit, deployed_at=deployed_at,
+            confidence=conf, **base,
+            reasoning=f"The fix went live on {deployed_at} ({why}), before this report arrived "
+                      f"on {reported_at[:10]} — either it did not work or the bug returned. "
+                      "Engineering should see this.")
+    return VerdictResult(
+        verdict=Verdict.ALREADY_FIXED, fix_commit=commit, deployed_at=deployed_at,
+        confidence=conf, **base,
+        reasoning=f"Fixed and deployed on {deployed_at} ({why}). The change is already live, "
+                  "so reloading picks it up — there is no update for the user to install.")
+
+
+def _parse_iso(value: str | None):
+    try:
+        return datetime.fromisoformat(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def version_allowlist(verdict: VerdictResult) -> set[str]:
@@ -264,12 +338,18 @@ _TEMPLATES: dict[tuple[str, str], str] = {
     ("needs_info", "en"): "Thanks for writing in! To track this down we need a little more detail: {questions} — {sig}",
     ("not_a_bug", "es"): "¡Gracias por la sugerencia! La anotamos para el equipo de producto. — {sig}",
     ("not_a_bug", "en"): "Thanks for the suggestion! We've noted it for the product team. — {sig}",
+    # continuous delivery: nothing to install, nothing to ask a version for
+    ("already_fixed/continuous", "es"): "¡Gracias por avisarnos! Esto ya está corregido y el arreglo está publicado desde el {deployed_at}. Recarga la página y debería quedar resuelto. — {sig}",
+    ("already_fixed/continuous", "en"): "Thanks for flagging this! It's already fixed, and the change went live on {deployed_at}. Reload the page and you should be all set. — {sig}",
 }
 
 
-def template_reply(intake: IntakeResult, verdict: VerdictResult, sig: str) -> str:
+def template_reply(intake: IntakeResult, verdict: VerdictResult, sig: str,
+                   deploy_model: str = DEPLOY_TAGS) -> str:
     lang = "es" if (intake.language or "").lower().startswith("es") else "en"
-    template = _TEMPLATES.get((verdict.verdict.value, lang)) or _TEMPLATES.get(("not_fixed", lang))
+    key = verdict.verdict.value
+    template = (_TEMPLATES.get((f"{key}/{deploy_model}", lang))
+                or _TEMPLATES.get((key, lang)) or _TEMPLATES.get(("not_fixed", lang)))
     eta = ""
     if verdict.fix_release and verdict.fix_release.store_eta:
         eta = (f" (estimada para el {verdict.fix_release.store_eta})" if lang == "es"
@@ -284,6 +364,7 @@ def template_reply(intake: IntakeResult, verdict: VerdictResult, sig: str) -> st
     return template.format(
         fix_version=verdict.fix_release.version if verdict.fix_release else "",
         version_line=version_line, eta=eta, sig=sig,
+        deployed_at=verdict.deployed_at or "",
         questions=" ".join(intake.missing_info) if intake.missing_info else "",
     ).replace("  ", " ").strip()
 

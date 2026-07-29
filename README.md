@@ -78,6 +78,17 @@ LANDED_REPO=/path/to/your/repo make demo
 Without a `LANDED_RELEASES` manifest, every git tag counts as a released
 version. Analyzing your own feedback requires live mode.
 
+**If you deploy continuously** (a web app, no tags, no store review), set
+`LANDED_DEPLOY_MODEL=continuous`. Merging becomes shipping, so there is no
+version to compare and no version to ask the reporter for; the same question —
+*did the fix reach this person?* — is answered with deploy dates instead. A fix
+that went live before the report arrived is the regression signal, exactly as a
+reporter running a version that already contains the fix is under `tags`.
+
+```bash
+LANDED_REPO=/path/to/your/webapp LANDED_DEPLOY_MODEL=continuous make demo
+```
+
 ## What's real vs. stubbed
 
 **Real:** the whole harness — intake normalization + bilingual query expansion

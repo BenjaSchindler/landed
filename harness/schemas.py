@@ -77,6 +77,7 @@ class VerdictResult(BaseModel):
     verdict: Verdict
     fix_commit: Optional[Commit] = None
     fix_release: Optional[Release] = None    # release containing the fix, if tagged
+    deployed_at: Optional[str] = None        # continuous delivery: when the fix went live
     confidence: float = 0.0
     reporter_version: Optional[str] = None
     version_unknown: bool = False            # verdict computed without knowing the reporter's version

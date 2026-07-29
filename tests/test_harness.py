@@ -14,7 +14,8 @@ import unittest
 from harness.indexer import semver_key, tokenize
 from harness.llm import LLMUnavailable
 from harness.pipeline import (
-    Pipeline, compute_verdict, reply_versions_ok, template_reply, version_allowlist,
+    DEPLOY_CONTINUOUS, Pipeline, compute_verdict, reply_versions_ok, template_reply,
+    version_allowlist,
 )
 from harness.schemas import (
     Adjudication, Candidate, Commit, FeedbackItem, IntakeResult, Release,
@@ -148,6 +149,74 @@ class TestComputeVerdict(unittest.TestCase):
         v = compute_verdict(make_intake(version=None), adj(), INDEX)
         self.assertEqual(v.verdict, Verdict.ALREADY_FIXED)
         self.assertTrue(v.version_unknown)
+
+
+class TestContinuousDelivery(unittest.TestCase):
+    """Web products ship on merge: no tags, no reporter version, no store lag.
+
+    The tagged model collapses every verdict here to fix_coming and tells the
+    user a live fix "ships with the next release", so the claim is inverted
+    exactly when it matters most.
+    """
+
+    # the demo commit is dated 2026-04-22; reports are placed relative to it
+    BEFORE = "2026-04-20T10:00:00-03:00"   # reported before the fix landed
+    JUST_AFTER = "2026-04-23T10:00:00-03:00"   # inside the propagation window
+    LONG_AFTER = "2026-06-01T10:00:00-03:00"   # weeks after the fix went live
+
+    def verdict(self, reported_at, fixed_in=None, conf=0.9):
+        index = FakeIndex([make_commit(fixed_in=fixed_in)], [])
+        return compute_verdict(make_intake(version=None), adj(conf=conf), index,
+                               DEPLOY_CONTINUOUS, reported_at)
+
+    def test_untagged_fix_is_live_not_pending(self):
+        # the whole point: the tagged model calls this fix_coming
+        v = self.verdict(self.BEFORE)
+        self.assertEqual(v.verdict, Verdict.ALREADY_FIXED)
+        self.assertEqual(v.deployed_at, "2026-04-22")
+        self.assertIn("already live", v.reasoning)
+
+    def test_symptom_seen_after_the_fix_went_live_is_a_regression(self):
+        v = self.verdict(self.LONG_AFTER)
+        self.assertEqual(v.verdict, Verdict.REGRESSION_SUSPECTED)
+        self.assertEqual(v.deployed_at, "2026-04-22")
+
+    def test_report_crossing_the_deploy_in_flight_is_not_a_regression(self):
+        v = self.verdict(self.JUST_AFTER)
+        self.assertEqual(v.verdict, Verdict.ALREADY_FIXED)
+
+    def test_missing_report_date_never_invents_a_regression(self):
+        for missing in (None, "", "not a date"):
+            self.assertEqual(self.verdict(missing).verdict, Verdict.ALREADY_FIXED)
+
+    def test_never_asks_a_web_user_for_an_app_version(self):
+        for reported_at in (self.BEFORE, self.LONG_AFTER):
+            v = self.verdict(reported_at)
+            self.assertFalse(v.version_unknown)
+            self.assertIsNone(v.reporter_version)
+        # and the weak-match / no-match paths must not ask either
+        self.assertFalse(self.verdict(self.BEFORE, conf=0.5).version_unknown)
+        self.assertFalse(self.verdict(self.BEFORE, conf=0.1).version_unknown)
+
+    def test_confidence_gating_still_applies(self):
+        self.assertEqual(self.verdict(self.BEFORE, conf=0.5).verdict, Verdict.UNCERTAIN)
+        self.assertEqual(self.verdict(self.BEFORE, conf=0.1).verdict, Verdict.NOT_FIXED)
+
+    def test_reply_template_mentions_no_versions_and_no_store(self):
+        v = self.verdict(self.BEFORE)
+        for lang in ("es", "en"):
+            text = template_reply(make_intake(version=None, lang=lang), v, "Team",
+                                  DEPLOY_CONTINUOUS)
+            self.assertTrue(reply_versions_ok(text, version_allowlist(v)), text)
+            self.assertIn("2026-04-22", text)
+            for banned in ("Settings > About", "Acerca de", "tienda", "store", "actualiza"):
+                self.assertNotIn(banned.lower(), text.lower(), f"{banned!r} leaked: {text}")
+
+    def test_tagged_products_are_untouched(self):
+        v = compute_verdict(make_intake(version="1.0.1"), adj(), INDEX)
+        self.assertEqual(v.verdict, Verdict.ALREADY_FIXED)
+        self.assertIsNone(v.deployed_at)
+        self.assertEqual(v.reporter_version, "1.0.1")
 
 
 class TestReplyGuardrail(unittest.TestCase):
