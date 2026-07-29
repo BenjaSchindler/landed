@@ -12,6 +12,7 @@ import json
 import re
 import subprocess
 import unicodedata
+from datetime import datetime
 from pathlib import Path
 
 from rank_bm25 import BM25Okapi
@@ -72,7 +73,9 @@ class RepoIndex:
         self.releases: list[Release] = []
         self._by_sha: dict[str, Commit] = {}
         self._bm25: BM25Okapi | None = None
+        self.branch_warning: str | None = None
         self._check_branches()
+        self._check_stage_order()
         self._load_releases(releases_path)
         self._load_commits()
         self._build_bm25()
@@ -98,6 +101,34 @@ class RepoIndex:
             f"LANDED_BRANCHES names branches that do not exist in {self.repo}: "
             f"{', '.join(missing)}\navailable: {', '.join(available) or '(none)'}"
         )
+
+    def _check_stage_order(self) -> None:
+        """Flag stages listed in an order that contradicts how work moves.
+
+        The order is a claim about your deploy process, so git cannot confirm
+        it — get it backwards and pre-production is treated as what users are
+        running, which is the false "already fixed" all over again. What git
+        can show is direction: work reaches pre-production before production,
+        so a later stage whose newest commit predates production's is either
+        listed in the wrong order or holding hotfixes it never took back.
+
+        Counts cannot carry this. In a real repo production legitimately holds
+        commits pre-production lacks — old branch drift — so "ahead by N" fires
+        on correct configurations. Recency of the tip does not.
+        """
+        if len(self.branches) < 2:
+            return
+        tips = {b: _git(self.repo, "log", "-1", "--format=%aI", b).strip() for b in self.branches}
+        live = self.branches[0]
+        stale = [b for b in self.branches[1:]
+                 if tips[b] and tips[live] and
+                 datetime.fromisoformat(tips[b]) < datetime.fromisoformat(tips[live])]
+        if stale:
+            self.branch_warning = (
+                f"{', '.join(stale)} sits behind {live}, which is listed as live. "
+                f"Work usually reaches pre-production first — check that LANDED_BRANCHES "
+                f"is ordered production-first, or that {live} is not carrying unmerged hotfixes."
+            )
 
     def _load_releases(self, releases_path) -> None:
         if releases_path and Path(releases_path).exists():

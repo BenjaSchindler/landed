@@ -95,6 +95,10 @@ async def lifespan(app: FastAPI):
     deploy_model = os.environ.get("LANDED_DEPLOY_MODEL", DEPLOY_TAGS)
     branches = resolve_branches(os.environ, deploy_model)
     index = RepoIndex(repo_path, releases, branches)
+    if index.branch_warning:
+        # not fatal: git cannot know your deploy order, it can only notice that
+        # the commits are moving the other way
+        print(f"WARNING: {index.branch_warning}", flush=True)
     llm = LLM()
     product = product_name(os.environ, repo_path)
     app.state.pipeline = Pipeline(index, llm, team_signature=f"The {product} team",
@@ -131,6 +135,7 @@ def meta():
         "product": app.state.product,
         "repo": app.state.repo,
         "branches": pipeline.index.branches,
+        "branch_warning": pipeline.index.branch_warning,
         "commits": len(pipeline.index.commits),
         "releases": [r.model_dump() for r in pipeline.index.releases],
     }

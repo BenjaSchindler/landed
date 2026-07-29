@@ -37,6 +37,8 @@
           font-family: ui-monospace, SFMono-Regular, Menlo, monospace; cursor: default; }
   #repo b { color: var(--ink); font-weight: 650; }
   #repo .dm { color: var(--purple); font-weight: 650; }
+  #repo.warn { background: var(--amber-bg); }
+  #repo.warn .dm { color: var(--amber); }
   #mode { font-size: 12px; font-weight: 600; color: var(--gray);
           background: var(--gray-bg); padding: 4px 12px; border-radius: 999px; }
   #mode.live { color: var(--green); background: var(--green-bg); }
@@ -242,6 +244,12 @@ async function boot() {
   repoEl.title = branches.length
     ? `${meta.repo.path}\nstages: ${branches.join(" ← ")}`
     : meta.repo.path;
+  // the stage order is unverifiable — say so where the stages are shown
+  if (meta.branch_warning) {
+    repoEl.classList.add("warn");
+    repoEl.title += `\n\n⚠ ${meta.branch_warning}`;
+    repoEl.querySelector(".dm").textContent += " ⚠";
+  }
   await refreshList();
   const want = new URLSearchParams(location.search).get("item");
   if (want && items.some(i => i.id === want)) select(want);
