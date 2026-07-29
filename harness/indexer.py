@@ -44,6 +44,10 @@ def tokenize(text: str) -> list[str]:
     return [t for t in tokens if len(t) > 1 and t not in _STOPWORDS]
 
 
+class BranchNotFound(Exception):
+    """A configured deployment stage does not exist in the repo being indexed."""
+
+
 def _git(repo: Path, *args: str) -> str:
     out = subprocess.run(
         ["git", "-C", str(repo), *args],
@@ -68,11 +72,32 @@ class RepoIndex:
         self.releases: list[Release] = []
         self._by_sha: dict[str, Commit] = {}
         self._bm25: BM25Okapi | None = None
+        self._check_branches()
         self._load_releases(releases_path)
         self._load_commits()
         self._build_bm25()
 
     # -------------------------------------------------------------- loading
+
+    def _check_branches(self) -> None:
+        """Say which named branch is missing, before git says it in subprocess.
+
+        Pointing LANDED_REPO at a different codebase while LANDED_BRANCHES still
+        names the old one's branches is the ordinary way to get here, and the
+        raw CalledProcessError that git raises names neither the branch nor the
+        alternatives.
+        """
+        missing = [b for b in self.branches
+                   if subprocess.run(["git", "-C", str(self.repo), "rev-parse", "--verify",
+                                      "--quiet", f"{b}^{{commit}}"],
+                                     capture_output=True).returncode != 0]
+        if not missing:
+            return
+        available = _git(self.repo, "branch", "--format=%(refname:short)").split()
+        raise BranchNotFound(
+            f"LANDED_BRANCHES names branches that do not exist in {self.repo}: "
+            f"{', '.join(missing)}\navailable: {', '.join(available) or '(none)'}"
+        )
 
     def _load_releases(self, releases_path) -> None:
         if releases_path and Path(releases_path).exists():
