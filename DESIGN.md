@@ -29,10 +29,12 @@ small team shipping mobile (or desktop, or anything with release lag):
   the one unforgivable failure. That split — model for the fuzzy joins,
   deterministic code for the claim — is exactly what a harness is for.
 - **Where it doesn't fit (honestly):** teams with disciplined fix-version
-  labeling on a tracker plus instant web deploys mostly don't have this
-  problem — there, this is a SQL query. The tool earns its keep where release
-  lag is structural and commit history is the only truthful record, which in
-  my experience is most small mobile teams.
+  labeling on a tracker plus single-branch instant deploys mostly don't have
+  this problem — there, this is a SQL query. The tool earns its keep where
+  the gap between "merged" and "in this user's hands" is structural and commit
+  history is the only truthful record — release lag on mobile, or a
+  pre-production branch on the web (§4 tells how a real web repo taught me
+  the second case the hard way).
 
 Existing "AI support" tools answer from knowledge bases and macros. I couldn't
 find one that answers **relative to the reporter's build**, from the codebase
@@ -61,6 +63,15 @@ work already has: an inbox.
   the escalation that does happen arrives with context instead of a Slack ping.
 - When the tool can't answer, it says so plainly and keeps the item. The
   failure modes are designed states, not blank screens.
+- Not every inbox item is a report. A teammate pasting a direct question —
+  *"is the PDF export bug fixed?"* — is detected at intake and answered as a
+  **lookup**: same retrieval, same citation and confidence gates, but the
+  output is an answer about the change history, not a filed bug with a
+  drafted reply. Before the route existed, questions came back `not_a_bug` —
+  technically true, humanly useless.
+- The header always names what the verdicts are *about*: the connected repo,
+  its deployment branches, and the product name — so "already fixed" can
+  never quietly mean "fixed in some other codebase".
 
 The verdict taxonomy is the product: `already_fixed` (update available),
 `fix_coming` (merged / in review — with ETA when known), `regression`
@@ -79,7 +90,7 @@ flowchart LR
     S --> A[adjudication\nLLM cites one sha or null]
     A --> G{sha in candidate set?}
     G -->|no| G2[corrective retry, then discard]
-    G -->|yes| V[verdict = version arithmetic\npure code: semver x release manifest]
+    G -->|yes| V[verdict = deploy arithmetic\npure code: semver x releases, or branches x dates]
     V --> R[reply draft LLM\nversion-allowlist check -> template fallback]
     V --> P[escalation packet\npure code]
 ```
@@ -107,6 +118,18 @@ is not retained server-side). Everything load-bearing is deterministic:
 - **Failure degrades, never guesses.** API errors (after SDK retries), refusals
   and schema failures all land in a `failed` state that keeps the item, shows a
   friendly message, and still produces an escalation packet.
+
+**Two deploy models, one question.** The demo ships like an app-store product
+(`tags` mode): "did it reach them" is tag containment × the release manifest,
+against the reporter's version. A continuously-deployed product
+(`LANDED_DEPLOY_MODEL=continuous`) has no versions to compare — merging *is*
+shipping — so the same question is answered by **branches and dates**:
+`LANDED_BRANCHES` names the deployment stages production-first; only the first
+counts as "in users' hands" (`already_fixed`, with a two-day grace window
+before a post-deploy report reads as `regression`), later stages read as
+`fix_coming`, and branches not named never enter the corpus, so experimental
+work can never be cited as a fix. Naming the stages is required rather than
+defaulted; §4 is the story of why.
 
 Retrieval is BM25 over commit subject+body+paths with a code-aware,
 diacritics-stripping tokenizer. Cross-language matching (Spanish report ↔
@@ -160,6 +183,27 @@ real defects no authored test had hit:
    (null short-circuits before any confidence gate) but incoherent data; one
    clarifying prompt line, re-recorded, now every null match reports 0.0.
 
+The defect that mattered most came from neither layer. I pointed Landed at a
+real production web app I work on — continuous deploys, no tags, three
+long-lived branches (production / pre-production / experimental) — and asked
+about a fix I knew had just merged. It answered **already fixed, 0.98
+confidence**, and drafted a "just reload the page" reply. The fix was only on
+pre-production: bare `git log` reads whatever `HEAD` points at, so the
+evidence corpus had silently depended on the last `git checkout` — and the
+exact failure this tool exists to prevent came out of my own harness. No
+number of eval cases would have caught it: all 26 run against the demo repo,
+where `HEAD` and the deployed branch coincide. The trial reshaped continuous
+mode — stages required and explicit, only the live branch means "in users'
+hands", unnamed branches excluded from evidence — and made misconfiguration
+loud: a stage that doesn't exist fails at startup naming the ones that do,
+and a stage order contradicting the direction commits travel draws a header
+warning. That check compares branch-tip recency, not ahead/behind counts,
+because I measured the trial repo first: production legitimately held eight
+commits staging lacked (old drift), so counts would flag correct configs.
+The coverage gap became its own test layer — git-backed tests over synthetic
+multi-branch repos (`tests/test_indexer_git.py`), kept out of the otherwise
+hermetic unit suite.
+
 ## 5. Tooling and tradeoffs
 
 - **GPT-5.5 via the Responses API, reasoning effort tiered per stage.** The
@@ -208,6 +252,11 @@ the reporter when their fix actually ships.
 
 **Least sure about:** retrieval recall on genuinely terse commit histories
 ("fix stuff") — query expansion can't rescue a corpus with no signal, and I'd
-want the eval set to measure where that cliff is; and whether `uncertain`
-occurs at the right rate on live traffic — the confidence thresholds are set
-by reasoning, not yet by data.
+want the eval set to measure where that cliff is; whether `uncertain` occurs
+at the right rate on live traffic — the confidence thresholds are set by
+reasoning, not yet by data; and continuous mode's live-model behavior, which
+rests on unit tests, the authored-output logic gate, and one real-repo trial —
+it has no recorded eval cases of its own yet, and the stage-order check is a
+tip-recency heuristic — a hotfix pushed straight to production flips it either
+way (noise on a correct config, silence on an inverted one), which is why it
+warns instead of refusing.

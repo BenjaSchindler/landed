@@ -9,13 +9,18 @@ regression / not fixed / needs info*), a **ready-to-send reply in the
 reporter's language**, and, when a human is needed, a **pre-built engineering
 handoff** — without interrupting an engineer.
 
+It also works when the question *is* the input: paste *"is the export bug
+fixed yet?"* and it answers as a **lookup** — same evidence, same gates, an
+answer instead of a filed bug.
+
 ![the Landed inbox](docs/screenshot.png)
 
 The trick is what it *doesn't* trust the model with: a language model bridges
 fuzzy user vocabulary to engineer vocabulary ("everything I answered is gone"
 → `persist runner state on AppState change`), but whether that fix is in the
-reporter's hands is **version arithmetic over git tags and a release
-manifest — pure code**. The model never says "fixed."
+reporter's hands is **pure code** — version arithmetic over git tags and a
+release manifest, or branch membership and deploy dates for products that
+ship continuously. The model never says "fixed."
 
 See [DESIGN.md](DESIGN.md) for the problem thesis, architecture, and tradeoffs.
 
@@ -56,18 +61,22 @@ make eval-replay   # grade the shipped recorded fixtures, strict (no key)
 make record        # re-record every fixture live and grade end-to-end (~70 calls)
 ```
 
-25 labeled cases: the 9 inbox items plus paraphrases, Spanish/Chilean dialect
-variants, odd version formats, vague reports, and deliberate traps (a streak
-*timezone* fix that must not match a streak *layout* complaint; two regression
-cases where the reporter's version must flip the verdict). The headline metric
-is the **false-"fixed" rate** — telling a user something is handled when it
-isn't is the one failure the tool must not make.
+26 labeled cases: the 9 inbox items plus paraphrases, Spanish/Chilean dialect
+variants, odd version formats, vague reports, direct "is this fixed yet?"
+lookups, and deliberate traps (a streak *timezone* fix that must not match a
+streak *layout* complaint; two regression cases where the reporter's version
+must flip the verdict). The headline metric is the **false-"fixed" rate** —
+telling a user something is handled when it isn't is the one failure the tool
+must not make. `--strict` also fails on template fallbacks: a prompt edit that
+orphans the recorded replies silently downgrades every draft to a template,
+and no verdict metric notices.
 
-Latest live run (gpt-5.5, 2026-07-23): **25/25 verdicts correct, 0/12
-fixed-claims wrong, 0 invalid citations**, ~9s median per item. The first live
-run also caught a real harness bug (a `v`-prefixed version misread by the
-reply guardrail's regex) — kept as a unit test; the story is in
-[DESIGN.md](DESIGN.md#4-how-i-know-it-works).
+All fixtures are recorded live (gpt-5.5 — the 25-case base on 2026-07-23, the
+lookup additions on 2026-07-29) and grade **26/26 verdicts correct, 0/13
+fixed-claims wrong, 0 invalid citations, 0 template fallbacks**; ~9s median
+per item when live. Live runs — and a trial against a real production repo —
+have caught real harness bugs, each kept as a regression test; the stories are
+in [DESIGN.md](DESIGN.md#4-how-i-know-it-works).
 
 ## Point it at your own repo
 
@@ -97,6 +106,13 @@ claim, sent to a user. With stages named, the first branch is what users are
 running (`already_fixed`, or `regression` when the fix predates the report),
 anything further back is merged but not in their hands (`fix_coming`), and work
 on unnamed branches never enters the corpus at all, so it cannot be cited.
+
+Misconfiguration is loud, because this config is load-bearing: a branch that
+doesn't exist fails at startup naming it — and the branches that do exist; an
+order that contradicts the direction commits travel (the branch listed as live
+carrying a newer tip than the stages behind it) turns the header chip amber
+with the reason, since backwards stages would make pre-production read as what
+users run.
 
 ## What's real vs. stubbed
 
@@ -129,7 +145,7 @@ harness/          the pipeline: schemas, indexer (git+BM25), llm seam (Responses
                   prompts, pipeline (guardrails + verdict logic), FastAPI server, evals
 web/index.html    the support inbox (vanilla JS, no build step)
 demo/             generator for the deterministic demo repo + releases + seed feedback
-evals/            25 labeled cases (gold verdicts + fix versions) + last run results
+evals/            26 labeled cases (gold verdicts + fix versions) + last run results
 fixtures/replay/  recorded gpt-5.5 outputs — keyless runs replay these
 scripts/          author_fixtures: the harness-logic gate (model played by hand)
 tests/            unit tests for version arithmetic, guardrails, fallbacks
