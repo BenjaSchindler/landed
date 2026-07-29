@@ -49,7 +49,7 @@ def main() -> None:
 
     rows, skipped = [], 0
     per_class = defaultdict(lambda: {"tp": 0, "fp": 0, "fn": 0})
-    false_fixed, fixed_claims, bad_citations = 0, 0, 0
+    false_fixed, fixed_claims, bad_citations, fallbacks = 0, 0, 0, 0
 
     for case in cases:
         item = FeedbackItem(id=case["id"], text=case["text"], channel=case.get("channel", "eval"))
@@ -65,6 +65,7 @@ def main() -> None:
         got = result.verdict.verdict.value
         want = case["gold"]["verdict"]
         ok = got == want
+        fallbacks += result.reply_is_fallback
 
         # extra checks on "fixed" claims: right version, valid citation
         version_ok = True
@@ -99,6 +100,10 @@ def main() -> None:
     print(f"false-'fixed' rate: {false_fixed}/{fixed_claims} fixed-claims wrong"
           + ("  ← the metric that matters" if fixed_claims else ""))
     print(f"invalid citations:  {bad_citations} (must be 0 — enforced by the harness)")
+    # a replay run has a fixture for every reply, so a fallback here means the
+    # prompt changed and orphaned its recordings — silent until someone reads a
+    # draft, because the graded verdict is unaffected
+    print(f"template fallbacks: {fallbacks} (replies that lost their model draft)")
     print("\nper-class:")
     for cls, m in sorted(per_class.items()):
         prec = m["tp"] / (m["tp"] + m["fp"]) if (m["tp"] + m["fp"]) else 1.0
@@ -109,10 +114,10 @@ def main() -> None:
     out.write_text(json.dumps({
         "mode": llm.mode, "graded": len(graded), "skipped": skipped,
         "correct": correct, "false_fixed": false_fixed, "fixed_claims": fixed_claims,
-        "invalid_citations": bad_citations, "rows": rows,
+        "invalid_citations": bad_citations, "reply_fallbacks": fallbacks, "rows": rows,
     }, indent=1))
     print(f"\nwrote {out.relative_to(ROOT)}")
-    if args.strict and (correct < len(graded) or skipped):
+    if args.strict and (correct < len(graded) or skipped or fallbacks):
         raise SystemExit(1)
 
 

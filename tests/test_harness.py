@@ -212,6 +212,22 @@ class TestContinuousDelivery(unittest.TestCase):
             for banned in ("Settings > About", "Acerca de", "tienda", "store", "actualiza"):
                 self.assertNotIn(banned.lower(), text.lower(), f"{banned!r} leaked: {text}")
 
+    def test_continuous_support_leaves_the_app_store_prompt_byte_identical(self):
+        # fixture keys hash the prompt, so perturbing the app-store prompt orphans
+        # every recorded reply and the demo silently drops to templates — which no
+        # verdict-graded eval notices. Continuous guidance may only append.
+        from harness.prompts import reply_prompt
+        verdict = VerdictResult(verdict=Verdict.ALREADY_FIXED, fix_commit=make_commit(),
+                                fix_release=RELEASED, reporter_version="1.0.1")
+        intake = make_intake()
+        sys_tags, user_tags = reply_prompt("hi", intake, verdict, "Team")
+        sys_cont, user_cont = reply_prompt("hi", intake, verdict, "Team", continuous=True)
+        self.assertTrue(sys_cont.startswith(sys_tags), "continuous rewrote shared prompt text")
+        self.assertNotEqual(sys_cont, sys_tags, "continuous guidance never reached the prompt")
+        # facts is serialized into the user turn, so a new key rekeys it too
+        self.assertNotIn("deployed_at", user_tags)
+        self.assertIn("deployed_at", user_cont)
+
     def test_tagged_products_are_untouched(self):
         v = compute_verdict(make_intake(version="1.0.1"), adj(), INDEX)
         self.assertEqual(v.verdict, Verdict.ALREADY_FIXED)
